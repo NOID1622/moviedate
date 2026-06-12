@@ -2,9 +2,15 @@ import { useState, useEffect, useRef } from "react";
 // ── LANGKAH TAMBAHAN: Import client Supabase yang sudah dibuat di Langkah 6 ──
 import { supabase } from "./supabase"; 
 
-const ACCENT = "#E8714A";
-const YOU_COLOR = "#E8714A";
-const PARTNER_COLOR = "#A78BFA";
+// ── PALET WARNA BARU ──────────────────────────────────────────────────────────
+const COLOR_PRIMARY   = "#2C5EAD"; // Biru Utama / Aksen
+const COLOR_SECONDARY = "#1591DC"; // Biru Pendukung / Cerah
+const COLOR_LIGHT     = "#4BB8FA"; // Biru Muda / Highlight
+const COLOR_SOFT      = "#C4E2F5"; // Biru Sangat Muda / Soft Text atau Pasangan
+
+const ACCENT = COLOR_PRIMARY;
+const YOU_COLOR = COLOR_SECONDARY;
+const PARTNER_COLOR = COLOR_LIGHT;
 const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY;
 const TMDB_IMG = "https://image.tmdb.org/t/p/w300";
 const TMDB_IMG_LG = "https://image.tmdb.org/t/p/w500";
@@ -46,10 +52,10 @@ function StatusBadge({ status, profiles }) {
   const meName = profiles?.me?.name || "You";
   const ptName = profiles?.partner?.name || "Partner";
   const map = {
-    both:    { label: `Both watched`,      bg: "rgba(232,113,74,.18)",  color: ACCENT,          icon: "👫" },
-    me:      { label: `${meName} watched`, bg: "rgba(232,113,74,.18)",  color: YOU_COLOR,       icon: "🧑" },
-    partner: { label: `${ptName} watched`, bg: "rgba(167,139,250,.18)", color: PARTNER_COLOR,   icon: "💑" },
-    none:    { label: "Not watched",       bg: "rgba(255,255,255,.08)", color: "#9CA3AF",       icon: "👁"  },
+    both:    { label: `Both watched`,    bg: "rgba(44, 94, 173, 0.2)",  color: COLOR_SOFT,     icon: "👫" },
+    me:      { label: `${meName} watched`, bg: "rgba(21, 145, 220, 0.2)", color: YOU_COLOR,     icon: "🧑" },
+    partner: { label: `${ptName} watched`, bg: "rgba(75, 184, 250, 0.2)", color: PARTNER_COLOR, icon: "💑" },
+    none:    { label: "Not watched",       bg: "rgba(255,255,255,.08)",   color: "#9CA3AF",      icon: "👁"  },
   };
   const st = map[status] || map.none;
   return (
@@ -396,7 +402,6 @@ export default function MovieDate() {
   const [tmdbLoading, setTmdbLoading] = useState(false);
   const [showSearch, setShowSearch]   = useState(false);
   
-  // State data utama (Sekarang defaultnya kosong, akan diisi dari Supabase)
   const [movies, setMovies]           = useState([]);
   const [profiles, setProfiles]       = useState(DEFAULT_PROFILES);
 
@@ -405,7 +410,6 @@ export default function MovieDate() {
 
   // ── BAGIAN INTEGRASI BARU: Ambil & Sinkronisasi data Real-time dengan Supabase ──
   useEffect(() => {
-    // 1. Ambil data movies saat pertama kali app dibuka
     async function fetchMovies() {
       const { data, error } = await supabase
         .from("movies")
@@ -414,7 +418,6 @@ export default function MovieDate() {
       if (!error && data) setMovies(data);
     }
 
-    // 2. Ambil data profiles saat pertama kali app dibuka
     async function fetchProfiles() {
       const { data, error } = await supabase.from("profiles").select("*");
       if (!error && data) {
@@ -431,7 +434,6 @@ export default function MovieDate() {
     fetchMovies();
     fetchProfiles();
 
-    // 3. Langganan Realtime Supabase untuk tabel 'movies'
     const moviesChannel = supabase
       .channel("realtime-movies")
       .on("postgres_changes", { event: "*", scheme: "public", table: "movies" }, (payload) => {
@@ -446,7 +448,6 @@ export default function MovieDate() {
       })
       .subscribe();
 
-    // 4. Langganan Realtime Supabase untuk tabel 'profiles'
     const profilesChannel = supabase
       .channel("realtime-profiles")
       .on("postgres_changes", { event: "UPDATE", scheme: "public", table: "profiles" }, (payload) => {
@@ -462,14 +463,12 @@ export default function MovieDate() {
       })
       .subscribe();
 
-    // Bersihkan langganan saat aplikasi ditutup
     return () => {
       supabase.removeChannel(moviesChannel);
       supabase.removeChannel(profilesChannel);
     };
   }, []);
 
-  // Menutup search bar jika klik di luar area
   useEffect(() => {
     const handler = e => { if (searchRef.current && !searchRef.current.contains(e.target)) setShowSearch(false); };
     document.addEventListener("mousedown", handler);
@@ -499,7 +498,6 @@ export default function MovieDate() {
     }, 400);
   }
 
-  // MODIFIKASI: Tambah film langsung dikirim ke Supabase
   async function handleAddMovie(tmdbMovie) {
     if (movies.find(m => m.tmdb_id === tmdbMovie.tmdb_id)) {
       alert(`"${tmdbMovie.title}" sudah ada di watchlist!`);
@@ -527,14 +525,12 @@ export default function MovieDate() {
       status: "none"
     };
 
-    // Kirim ke database Supabase
     const { error } = await supabase.from("movies").insert([newMovie]);
     if (error) alert("Gagal menambahkan film ke server: " + error.message);
 
     setShowSearch(false); setSearchQ(""); setTmdbResults([]);
   }
 
-  // MODIFIKASI: Update status tontonan langsung dikirim ke Supabase
   async function toggleWatch(movieId, person) {
     const targetMovie = movies.find(m => m.id === movieId);
     if (!targetMovie) return;
@@ -546,7 +542,6 @@ export default function MovieDate() {
     
     const nextStatus = statusFromWatched(nextWatched);
 
-    // Kirim update data ke Supabase
     const { error } = await supabase
       .from("movies")
       .update({ watched: nextWatched, status: nextStatus })
@@ -555,7 +550,6 @@ export default function MovieDate() {
     if (error) alert("Gagal memperbarui status: " + error.message);
   }
 
-  // MODIFIKASI: Simpan perubahan profile langsung ke Supabase
   async function saveProfiles(newForm) {
     const { error: errorMe } = await supabase
       .from("profiles")
@@ -588,6 +582,7 @@ export default function MovieDate() {
       <aside style={{ width: 240, flexShrink: 0, background: "#13131f", borderRight: "1px solid #1e1e30", display: "flex", flexDirection: "column", padding: "20px 0" }}>
         <div style={{ padding: "0 20px 24px", borderBottom: "1px solid #1e1e30" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {/* Menggunakan COLOR_PRIMARY untuk icon background */}
             <div style={{ width: 40, height: 40, borderRadius: 12, background: ACCENT, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>🎥</div>
             <div>
               <div style={{ fontWeight: 800, fontSize: 17 }}>MovieDate</div>
@@ -600,6 +595,7 @@ export default function MovieDate() {
             <button key={item.id} onClick={() => setActiveNav(item.id)} style={{
               display: "flex", alignItems: "center", gap: 10, width: "100%",
               padding: "10px 14px", borderRadius: 10,
+              // Update opasitas background nav aktif menggunakan hex color baru (22 mewakili ~13% opacity)
               background: activeNav === item.id ? `${ACCENT}22` : "transparent",
               border: "none", color: activeNav === item.id ? ACCENT : "#9CA3AF",
               fontWeight: activeNav === item.id ? 700 : 500,
