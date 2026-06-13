@@ -6,6 +6,10 @@ import watchlistIcon from "./assets/watchlist.png";
 import historyIcon from "./assets/history.png";
 import analyticsIcon from "./assets/analytics.png";
 import settingsIcon from "./assets/settings.png";
+import powerIcon from "./assets/power.png";
+
+// bg sidebar
+import sidebarBg from "./assets/bg-sidebarkanan.jpg";
 
 // ── PALET WARNA BARU ──────────────────────────────────────────────────────────
 const COLOR_PRIMARY   = "#2C5EAD"; 
@@ -137,19 +141,40 @@ function DetailPanel({ movie, onClose, onToggleWatch, onSaveReview, profiles }) 
         <div style={{ margin: "18px 0 8px", color: "#6B7280", fontSize: 11, textTransform: "uppercase", letterSpacing: 1 }}>Synopsis</div>
         <p style={{ color: "#D1D5DB", fontSize: 13, lineHeight: 1.6, margin: 0 }}>{movie.synopsis || "No synopsis available."}</p>
         
-        <div style={{ margin: "18px 0 12px", color: "#6B7280", fontSize: 11, textTransform: "uppercase", letterSpacing: 1 }}>Mark as Watched</div>
+       <div style={{ margin: "18px 0 12px", color: "#6B7280", fontSize: 11, textTransform: "uppercase", letterSpacing: 1 }}>Mark as Watched</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
           {["me", "partner"].map(key => {
             const p = profiles[key];
             const watched = movie.status === "both" || movie.status === key;
+            
+            // ── KUNCI JIKA INI BUKAN PROFIL AKUN YANG SEDANG LOGIN ──
+            const isNotMyProfile = key !== currentRole;
+
             return (
-              <div key={key} style={{ display: "flex", alignItems: "center", gap: 10, background: "#1a1a2e", borderRadius: 10, padding: "10px 14px" }}>
+              <div key={key} style={{ display: "flex", alignItems: "center", gap: 10, background: "#1a1a2e", borderRadius: 10, padding: "10px 14px", opacity: isNotMyProfile ? 0.7 : 1 }}>
                 <Avatar profile={p} size={36} />
                 <div style={{ flex: 1 }}>
                   <div style={{ color: "#fff", fontWeight: 600, fontSize: 13 }}>{p.name}</div>
                   <div style={{ color: watched ? "#34D399" : "#6B7280", fontSize: 11 }}>{watched ? "✓ Watched" : "Not watched yet"}</div>
                 </div>
-                <button onClick={() => onToggleWatch(movie.id, key)} style={{ background: watched ? "#2a2a3e" : ACCENT, color: watched ? "#9CA3AF" : "#fff", border: "none", borderRadius: 8, padding: "6px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>{watched ? "Undo" : "Mark"}</button>
+                
+                {/* ── TOMBOL DIBUAT DINAMIS (BISA KLIK ATAU TERKUNCI) ── */}
+                <button 
+                  disabled={isNotMyProfile}
+                  onClick={() => !isNotMyProfile && onToggleWatch(movie.id, key)} 
+                  style={{ 
+                    background: isNotMyProfile ? "transparent" : (watched ? "#2a2a3e" : ACCENT), 
+                    color: isNotMyProfile ? "#4B5563" : (watched ? "#9CA3AF" : "#fff"), 
+                    border: isNotMyProfile ? "1px solid #2a2a3e" : "none", 
+                    borderRadius: 8, 
+                    padding: "6px 12px", 
+                    fontSize: 12, 
+                    fontWeight: 600, 
+                    cursor: isNotMyProfile ? "not-allowed" : "pointer" 
+                  }}
+                >
+                  {isNotMyProfile ? "🔒 Terkunci" : (watched ? "Undo" : "Mark")}
+                </button>
               </div>
             );
           })}
@@ -211,7 +236,7 @@ function SearchDropdown({ results, onAdd, loading }) {
   if (!results.length && !loading) return null;
   return (
     <div style={{ position: "absolute", top: "calc(100% + 8px)", left: 0, right: 0, background: "#1a1a2e", borderRadius: 12, border: "1px solid #2a2a3e", zIndex: 100, overflow: "hidden", boxShadow: "0 8px 32px #000a", maxHeight: 360, overflowY: "auto" }}>
-      {loading && <div style={{ padding: 20, textAlign: "center", color: "#6B7280", fontSize: 13 }}>🔍 Searching...</div>}
+      {loading && <div style={{ padding: 20, textAlign: "center", color: "#6B7280", fontSize: 13 }}>Searching...</div>}
       {results.map(r => (
         <div key={r.id} onClick={() => onAdd(r)}
           style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", cursor: "pointer", borderBottom: "1px solid #2a2a3e", transition: "background .15s" }}
@@ -352,9 +377,23 @@ function SettingsView({ profiles, onSave, onLogout }) {
     <div style={{ padding: 32, color: "#fff", maxWidth: 600 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
         <h2 style={{ fontSize: 24, fontWeight: 800, margin: 0 }}>Settings</h2>
-        <button onClick={onLogout} style={{ background: "transparent", border: "1px solid #EF4444", color: "#EF4444", borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-          🚪 Keluar Akun
-        </button>
+          <button onClick={onLogout} style={{ 
+                    background: "transparent", 
+                    border: "1px solid #EF4444", 
+                    color: "#EF4444", 
+                    borderRadius: 8, 
+                    padding: "6px 14px", 
+                    fontSize: 13, 
+                    fontWeight: 600, 
+                    cursor: "pointer",
+                    display: "flex",         
+                    alignItems: "center",    
+                    gap: 8                   
+                  }}>
+                    {/* 👇 PERHATIKAN BAGIAN src={powerIcon} DI BAWAH INI */}
+                    <img src={powerIcon} alt="Logout" style={{ width: 16, height: 16, objectFit: "contain" }} />
+                    Keluar Akun
+                  </button>
       </div>
       <p style={{ color: "#6B7280", fontSize: 14, marginBottom: 32 }}>Kamu hanya bisa mengubah profil kamu sendiri.</p>
 
@@ -662,14 +701,38 @@ export default function MovieDate() {
 
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "#0f0f1a", fontFamily: "'Inter',system-ui,sans-serif", color: "#fff" }}>
-     <aside style={{ width: 240, flexShrink: 0, background: "#13131f", borderRight: "1px solid #1e1e30", display: "flex", flexDirection: "column", padding: "20px 0" }}>
+     <aside style={{ 
+        width: 240, 
+        flexShrink: 0, 
+        
+        // ── PENGATURAN BACKGROUND GAMBAR LOKAL ──
+        backgroundImage: `url(${sidebarBg})`,
+        backgroundSize: "cover",       // Memastikan gambar memenuhi seluruh area sidebar
+        backgroundPosition: "center",  // Menjaga gambar tetap di tengah
+        // ────────────────────────────────────────
+
+        borderRight: "1px solid #1e1e30", 
+        display: "flex", 
+        flexDirection: "column", 
+        padding: "20px 0" 
+      }}>
         <div style={{ padding: "0 20px 24px", borderBottom: "1px solid #1e1e30", display: "flex", alignItems: "center", gap: 10 }}>
           <img src="/logo.png" alt="MovieDate Logo" style={{ width: 40, height: 40, borderRadius: 12, objectFit: "cover" }} />
-          <div><div style={{ fontWeight: 800, fontSize: 17 }}>MovieDate</div><div style={{ color: "#6B7280", fontSize: 11 }}>Couple's Watchlist</div></div>
+          <div><div style={{ fontWeight: 800, fontSize: 17 }}>MovieDate</div><div style={{ color: "#AACCD6", fontSize: 11 }}>Couple's Watchlist</div></div>
         </div>
         <nav style={{ padding: "16px 12px", flex: 1 }}>
           {NAV_ITEMS.map(item => (
-            <button key={item.id} onClick={() => setActiveNav(item.id)} style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "10px 14px", borderRadius: 10, background: activeNav === item.id ? `${ACCENT}22` : "transparent", border: "none", color: activeNav === item.id ? ACCENT : "#9CA3AF", fontWeight: activeNav === item.id ? 700 : 500, fontSize: 14, cursor: "pointer", marginBottom: 2, transition: "all .15s" }}>
+            <button key={item.id} onClick={() => setActiveNav(item.id)} style={{ 
+              display: "flex", alignItems: "center", gap: 10, width: "100%", 
+              padding: "10px 14px", borderRadius: 10, 
+              
+              // ── UBAH DUA BARIS INI ──
+              background: activeNav === item.id ? "rgba(255, 255, 255, 0.15)" : "transparent", 
+              color: activeNav === item.id ? "#AACCD6" : "#9CA3AF", 
+              // ────────────────────────
+              
+              fontWeight: activeNav === item.id ? 700 : 500, fontSize: 14, cursor: "pointer", marginBottom: 2, transition: "all .15s" 
+            }}>
               <img src={item.icon} alt={item.label} style={{ width: 18, height: 18, objectFit: "contain", opacity: activeNav === item.id ? 1 : 0.6 }} />
               {item.label}
             </button>
