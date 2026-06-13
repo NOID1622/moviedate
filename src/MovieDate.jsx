@@ -662,7 +662,7 @@ export default function MovieDate() {
 
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "#0f0f1a", fontFamily: "'Inter',system-ui,sans-serif", color: "#fff" }}>
-      <aside style={{ width: 240, flexShrink: 0, background: "#13131f", borderRight: "1px solid #1e1e30", display: "flex", flexDirection: "column", padding: "20px 0" }}>
+     <aside style={{ width: 240, flexShrink: 0, background: "#13131f", borderRight: "1px solid #1e1e30", display: "flex", flexDirection: "column", padding: "20px 0" }}>
         <div style={{ padding: "0 20px 24px", borderBottom: "1px solid #1e1e30", display: "flex", alignItems: "center", gap: 10 }}>
           <img src="/logo.png" alt="MovieDate Logo" style={{ width: 40, height: 40, borderRadius: 12, objectFit: "cover" }} />
           <div><div style={{ fontWeight: 800, fontSize: 17 }}>MovieDate</div><div style={{ color: "#6B7280", fontSize: 11 }}>Couple's Watchlist</div></div>
@@ -675,10 +675,16 @@ export default function MovieDate() {
             </button>
           ))}
         </nav>
+{/* Kotak Profil (Pill) */}
         <div style={{ margin: "0 12px", background: "#1a1a2e", borderRadius: 12, padding: "12px 14px", display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ display: "flex" }}><Avatar profile={profiles.me} size={28} /><Avatar profile={profiles.partner} size={28} style={{ marginLeft: -8 }} /></div>
           <div><div style={{ fontWeight: 600, fontSize: 13 }}>{profiles.me.name} & {profiles.partner.name}</div><div style={{ color: "#34D399", fontSize: 11 }}>● Connected Live</div></div>
         </div>
+        {/* ── TAMBAHKAN KODE INI DI BAWAH KOTAK PROFIL ── */}
+        <div style={{ margin: "16px 12px 0", textAlign: "center", fontSize: 12, color: "#6B7280" }}>
+          Login sebagai: <span style={{ color: profiles[userRole]?.color, fontWeight: 700 }}>{profiles[userRole]?.name}</span>
+        </div>
+        {/* ─────────────────────────────────────────────── */}
       </aside>
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         <header style={{ padding: "16px 28px", background: "#13131f", borderBottom: "1px solid #1e1e30", display: "flex", alignItems: "center", gap: 16, flexShrink: 0 }}>
