@@ -513,16 +513,13 @@ export default function MovieDate() {
       if (!error && data) setMovies(data);
     }
 
+// ── 1. GANTI fungsi fetchProfiles menjadi ini ──
     async function fetchProfiles() {
       const { data, error } = await supabase.from("profiles").select("*");
       if (!error && data) {
-        // Menentukan role secara dinamis jika user sudah login, 
-        // jika belum login, kita buat pemetaan default ('me' dan 'partner') untuk tampilan login
-        const currentRole = userRole || "me";
-        const partnerRole = currentRole === "me" ? "partner" : "me";
-
-        const dbMe = data.find(p => p.id === currentRole);
-        const dbPartner = data.find(p => p.id === partnerRole);
+        // Tidak perlu ditukar-tukar lagi. ID 'me' selalu me, ID 'partner' selalu partner
+        const dbMe = data.find(p => p.id === "me");
+        const dbPartner = data.find(p => p.id === "partner");
 
         setProfiles({
           me: { name: dbMe?.name || "You", color: dbMe?.color || "#1591DC", avatar: dbMe?.avatar || null },
