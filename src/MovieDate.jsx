@@ -2,11 +2,17 @@ import { useState, useEffect, useRef } from "react";
 // ── LANGKAH TAMBAHAN: Import client Supabase yang sudah dibuat di Langkah 6 ──
 import { supabase } from "./supabase"; 
 
+// ── IMPORT ICON PNG LOKAL ─────────────────────────────────────────────────────
+import watchlistIcon from "./assets/watchlist.png";
+import historyIcon from "./assets/history.png";
+import analyticsIcon from "./assets/analytics.png";
+import settingsIcon from "./assets/settings.png";
+
 // ── PALET WARNA BARU ──────────────────────────────────────────────────────────
 const COLOR_PRIMARY   = "#2C5EAD"; // Biru Utama / Aksen
 const COLOR_SECONDARY = "#1591DC"; // Biru Pendukung / Cerah
 const COLOR_LIGHT     = "#4BB8FA"; // Biru Muda / Highlight
-const COLOR_SOFT      = "#C4E2F5"; // Biru Sangat Muda / Soft Text atau Pasangan
+const COLOR_SOFT      = "#C4E2F5"; // Biru Sangat Muda / Soft Text
 
 const ACCENT = COLOR_PRIMARY;
 const YOU_COLOR = COLOR_SECONDARY;
@@ -275,14 +281,13 @@ function AvatarUpload({ profile, onUpload, size = 80 }) {
 }
 
 // ── Settings ──────────────────────────────────────────────────────────────────
-function SettingsView({ profiles, onSave }) {
+function SettingsView({ profiles, onSave, onLogout }) {
   const [form, setForm] = useState({
     me:      { ...profiles.me },
     partner: { ...profiles.partner },
   });
   const [saved, setSaved] = useState(false);
 
-  // Update local form saat profiles berubah dari database luar
   useEffect(() => {
     setForm({ me: { ...profiles.me }, partner: { ...profiles.partner } });
   }, [profiles]);
@@ -307,10 +312,14 @@ function SettingsView({ profiles, onSave }) {
 
   return (
     <div style={{ padding: 32, color: "#fff", maxWidth: 600 }}>
-      <h2 style={{ marginBottom: 8, fontSize: 24, fontWeight: 800 }}>Settings</h2>
+      <div style={{ display: "flex", justifyContent: "between", alignItems: "center", marginBottom: 8 }}>
+        <h2 style={{ fontSize: 24, fontWeight: 800, margin: 0 }}>Settings</h2>
+        <button onClick={onLogout} style={{ marginLeft: "auto", background: "transparent", border: "1px solid #EF4444", color: "#EF4444", borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+          🚪 Keluar Akun
+        </button>
+      </div>
       <p style={{ color: "#6B7280", fontSize: 14, marginBottom: 32 }}>Atur profil kamu dan pasanganmu di sini.</p>
 
-      {/* Profile Cards */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 32 }}>
         {["me", "partner"].map(key => {
           const p = form[key];
@@ -319,7 +328,6 @@ function SettingsView({ profiles, onSave }) {
             <div key={key} style={{ background: "#1a1a2e", borderRadius: 16, padding: 24 }}>
               <div style={{ fontWeight: 700, fontSize: 14, color: "#9CA3AF", marginBottom: 20 }}>{label}</div>
 
-              {/* Avatar upload */}
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, marginBottom: 20 }}>
                 <div style={{ position: "relative" }}>
                   <AvatarUpload profile={p} onUpload={url => handleAvatar(key, url)} size={80} />
@@ -332,7 +340,6 @@ function SettingsView({ profiles, onSave }) {
                 )}
               </div>
 
-              {/* Name */}
               <div style={{ marginBottom: 16 }}>
                 <label style={{ display: "block", marginBottom: 6, color: "#6B7280", fontSize: 12, textTransform: "uppercase", letterSpacing: 0.8 }}>Nama</label>
                 <input
@@ -342,7 +349,6 @@ function SettingsView({ profiles, onSave }) {
                 />
               </div>
 
-              {/* Color */}
               <div>
                 <label style={{ display: "block", marginBottom: 6, color: "#6B7280", fontSize: 12, textTransform: "uppercase", letterSpacing: 0.8 }}>Warna Avatar</label>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -356,7 +362,6 @@ function SettingsView({ profiles, onSave }) {
         })}
       </div>
 
-      {/* Preview */}
       <div style={{ background: "#1a1a2e", borderRadius: 16, padding: 20, marginBottom: 24 }}>
         <div style={{ color: "#6B7280", fontSize: 12, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 14 }}>Preview</div>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
@@ -383,17 +388,18 @@ function SettingsView({ profiles, onSave }) {
   );
 }
 
-// ── NAV ───────────────────────────────────────────────────────────────────────
+// ── NAV DATA ──────────────────────────────────────────────────────────────────
 const NAV_ITEMS = [
-  { id: "watchlist", label: "Shared Watchlist", icon: "🎬" },
-  { id: "history",   label: "History",          icon: "🕐" },
-  { id: "analytics", label: "Who Watched More", icon: "📊" },
-  { id: "settings",  label: "Settings",         icon: "⚙️" },
+  { id: "watchlist", label: "Shared Watchlist", icon: watchlistIcon },
+  { id: "history",   label: "History",          icon: historyIcon },
+  { id: "analytics", label: "Who Watched More", icon: analyticsIcon },
+  { id: "settings",  label: "Settings",         icon: settingsIcon },
 ];
 const FILTERS = ["All", "Unwatched", "Watched by Me", "Watched by Partner", "Both Watched"];
 
-// ── MAIN ──────────────────────────────────────────────────────────────────────
+// ── MAIN COMPONENT ────────────────────────────────────────────────────────────
 export default function MovieDate() {
+  const [userRole, setUserRole]       = useState(localStorage.getItem("my_couple_role")); // null jika belum milih
   const [activeNav, setActiveNav]     = useState("watchlist");
   const [filter, setFilter]           = useState("All");
   const [selected, setSelected]       = useState(null);
@@ -408,7 +414,18 @@ export default function MovieDate() {
   const searchRef  = useRef(null);
   const debounceRef = useRef(null);
 
-  // ── BAGIAN INTEGRASI BARU: Ambil & Sinkronisasi data Real-time dengan Supabase ──
+  // Fungsi saat user memilih salah satu tombol akun
+  function handleSelectRole(role) {
+    localStorage.setItem("my_couple_role", role);
+    setUserRole(role);
+  }
+
+  // Fungsi untuk logout / tukar posisi akun
+  function handleLogout() {
+    localStorage.removeItem("my_couple_role");
+    setUserRole(null);
+  }
+
   useEffect(() => {
     async function fetchMovies() {
       const { data, error } = await supabase
@@ -417,17 +434,29 @@ export default function MovieDate() {
         .order("created_at", { ascending: false });
       if (!error && data) setMovies(data);
     }
+    async function fetchMovies() {
+      const { data, error } = await supabase
+        .from("movies")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (!error && data) setMovies(data);
+    }
 
-    async function fetchProfiles() {
+  async function fetchProfiles() {
       const { data, error } = await supabase.from("profiles").select("*");
       if (!error && data) {
-        const mapped = { ...DEFAULT_PROFILES };
-        data.forEach(p => {
-          if (p.id === "me" || p.id === "partner") {
-            mapped[p.id] = { name: p.name, color: p.color, avatar: p.avatar };
-          }
+        // Menentukan role secara dinamis jika user sudah login, 
+        // jika belum login, kita buat pemetaan default ('me' dan 'partner') untuk tampilan login
+        const currentRole = userRole || "me";
+        const partnerRole = currentRole === "me" ? "partner" : "me";
+
+        const dbMe = data.find(p => p.id === currentRole);
+        const dbPartner = data.find(p => p.id === partnerRole);
+
+        setProfiles({
+          me: { name: dbMe?.name || "You", color: dbMe?.color || "#1591DC", avatar: dbMe?.avatar || null },
+          partner: { name: dbPartner?.name || "Partner", color: dbPartner?.color || "#4BB8FA", avatar: dbPartner?.avatar || null },
         });
-        setProfiles(mapped);
       }
     }
 
@@ -435,39 +464,31 @@ export default function MovieDate() {
     fetchProfiles();
 
     const moviesChannel = supabase
-      .channel("realtime-movies")
-      .on("postgres_changes", { event: "*", scheme: "public", table: "movies" }, (payload) => {
-        if (payload.eventType === "INSERT") {
-          setMovies(prev => [payload.new, ...prev]);
-        } else if (payload.eventType === "UPDATE") {
-          setMovies(prev => prev.map(m => m.id === payload.new.id ? payload.new : m));
-          setSelected(prev => prev && prev.id === payload.new.id ? payload.new : prev);
-        } else if (payload.eventType === "DELETE") {
-          setMovies(prev => prev.filter(m => m.id !== payload.old.id));
-        }
-      })
-      .subscribe();
+        .channel("realtime-movies")
+        .on("postgres_changes", { event: "*", scheme: "public", table: "movies" }, (payload) => {
+          if (payload.eventType === "INSERT") {
+            setMovies(prev => [payload.new, ...prev]);
+          } else if (payload.eventType === "UPDATE") {
+            setMovies(prev => prev.map(m => m.id === payload.new.id ? payload.new : m));
+            setSelected(prev => prev && prev.id === payload.new.id ? payload.new : prev);
+          } else if (payload.eventType === "DELETE") {
+            setMovies(prev => prev.filter(m => m.id !== payload.old.id));
+          }
+        })
+        .subscribe();
 
     const profilesChannel = supabase
-      .channel("realtime-profiles")
-      .on("postgres_changes", { event: "UPDATE", scheme: "public", table: "profiles" }, (payload) => {
-        const updatedProfile = payload.new;
-        setProfiles(prev => ({
-          ...prev,
-          [updatedProfile.id]: {
-            name: updatedProfile.name,
-            color: updatedProfile.color,
-            avatar: updatedProfile.avatar
-          }
-        }));
-      })
-      .subscribe();
+        .channel("realtime-profiles")
+        .on("postgres_changes", { event: "UPDATE", scheme: "public", table: "profiles" }, (payload) => {
+          fetchProfiles(); 
+        })
+        .subscribe();
 
-    return () => {
-      supabase.removeChannel(moviesChannel);
-      supabase.removeChannel(profilesChannel);
-    };
-  }, []);
+      return () => {
+        supabase.removeChannel(moviesChannel);
+        supabase.removeChannel(profilesChannel);
+      };
+    }, [userRole]); // Trigger ulang ketika userRole berubah
 
   useEffect(() => {
     const handler = e => { if (searchRef.current && !searchRef.current.contains(e.target)) setShowSearch(false); };
@@ -535,10 +556,13 @@ export default function MovieDate() {
     const targetMovie = movies.find(m => m.id === movieId);
     if (!targetMovie) return;
 
+    // Memastikan status centang mengikuti hak akses userRole asli di DB
     const currentWatched = targetMovie.watched || [];
-    const nextWatched = currentWatched.includes(person)
-      ? currentWatched.filter(w => w !== person)
-      : [...currentWatched, person];
+    const dbPerson = person === "me" ? userRole : (userRole === "me" ? "partner" : "me");
+
+    const nextWatched = currentWatched.includes(dbPerson)
+      ? currentWatched.filter(w => w !== dbPerson)
+      : [...currentWatched, dbPerson];
     
     const nextStatus = statusFromWatched(nextWatched);
 
@@ -551,15 +575,17 @@ export default function MovieDate() {
   }
 
   async function saveProfiles(newForm) {
+    const partnerRole = userRole === "me" ? "partner" : "me";
+
     const { error: errorMe } = await supabase
       .from("profiles")
       .update({ name: newForm.me.name, color: newForm.me.color, avatar: newForm.me.avatar })
-      .eq("id", "me");
+      .eq("id", userRole);
 
     const { error: errorPartner } = await supabase
       .from("profiles")
       .update({ name: newForm.partner.name, color: newForm.partner.color, avatar: newForm.partner.avatar })
-      .eq("id", "partner");
+      .eq("id", partnerRole);
 
     if (errorMe || errorPartner) {
       alert("Gagal memperbarui profil di database online.");
@@ -569,12 +595,53 @@ export default function MovieDate() {
   const filterMap = {
     "All": () => true,
     "Unwatched": m => m.status === "none",
-    "Watched by Me": m => m.status === "me" || m.status === "both",
-    "Watched by Partner": m => m.status === "partner" || m.status === "both",
+    "Watched by Me": m => m.status === userRole || m.status === "both",
+    "Watched by Partner": m => m.status === (userRole === "me" ? "partner" : "me") || m.status === "both",
     "Both Watched": m => m.status === "both",
   };
   const filtered = movies.filter(filterMap[filter]);
 
+  // ── 1. JIKA BELUM LOGIN / PILIH AKUN: TAMPILKAN TOMBOL PILIHAN ──
+  if (!userRole) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100vh", background: "#0f0f1a", fontFamily: "'Inter',system-ui,sans-serif", color: "#fff" }}>
+        <div style={{ textAlign: "center", marginBottom: 40 }}>
+          <img 
+            src="/logo.png" 
+            alt="Logo" 
+            style={{ 
+              width: 250, 
+              height: 250, 
+              borderRadius: 20, 
+              marginBottom: 16,
+              display: "block",
+              marginLeft: "auto",
+              marginRight: "auto"
+            }} 
+          />
+          <h1 style={{ fontSize: 28, fontWeight: 900, margin: "0 0 8px" }}>Selamat Datang di MovieDate</h1>
+          <p style={{ color: "#6B7280", margin: 0 }}>Silakan pilih akun masuk Anda:</p>
+        </div>
+
+        <div style={{ display: "flex", gap: 20, width: "100%", maxWidth: 480, padding: "0 20px", boxSizing: "border-box" }}>
+          {/* Tombol Akun Saya */}
+          <button onClick={() => handleSelectRole("me")} style={{ flex: 1, padding: "24px", background: "#1a1a2e", border: `2px solid ${COLOR_SECONDARY}`, borderRadius: 16, color: "#fff", cursor: "pointer", transition: "transform .2s", display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+            {/* MENGGUNAKAN AVATAR BULAT DINAMIS */}
+            <Avatar profile={profiles.me} size={56} />
+            <span style={{ fontWeight: 700, fontSize: 16 }}>Akun Saya</span>
+          </button>
+          
+          {/* Tombol Akun Partner */}
+          <button onClick={() => handleSelectRole("partner")} style={{ flex: 1, padding: "24px", background: "#1a1a2e", border: `2px solid ${COLOR_LIGHT}`, borderRadius: 16, color: "#fff", cursor: "pointer", transition: "transform .2s", display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+            {/* MENGGUNAKAN AVATAR BULAT DINAMIS */}
+            <Avatar profile={profiles.partner} size={56} />
+            <span style={{ fontWeight: 700, fontSize: 16 }}>Akun Partner</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+  // ── 2. JIKA SUDAH PILIH AKUN: TAMPILKAN APLIKASI UTAMA UTUH ──
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "#0f0f1a", fontFamily: "'Inter',system-ui,sans-serif", color: "#fff" }}>
 
@@ -582,8 +649,7 @@ export default function MovieDate() {
       <aside style={{ width: 240, flexShrink: 0, background: "#13131f", borderRight: "1px solid #1e1e30", display: "flex", flexDirection: "column", padding: "20px 0" }}>
         <div style={{ padding: "0 20px 24px", borderBottom: "1px solid #1e1e30" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            {/* Menggunakan COLOR_PRIMARY untuk icon background */}
-            <div style={{ width: 40, height: 40, borderRadius: 12, background: ACCENT, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>🎥</div>
+            <img src="/logo.png" alt="MovieDate Logo" style={{ width: 40, height: 40, borderRadius: 12, objectFit: "cover" }} />
             <div>
               <div style={{ fontWeight: 800, fontSize: 17 }}>MovieDate</div>
               <div style={{ color: "#6B7280", fontSize: 11 }}>Couple's Watchlist</div>
@@ -595,12 +661,14 @@ export default function MovieDate() {
             <button key={item.id} onClick={() => setActiveNav(item.id)} style={{
               display: "flex", alignItems: "center", gap: 10, width: "100%",
               padding: "10px 14px", borderRadius: 10,
-              // Update opasitas background nav aktif menggunakan hex color baru (22 mewakili ~13% opacity)
               background: activeNav === item.id ? `${ACCENT}22` : "transparent",
               border: "none", color: activeNav === item.id ? ACCENT : "#9CA3AF",
               fontWeight: activeNav === item.id ? 700 : 500,
               fontSize: 14, cursor: "pointer", marginBottom: 2, transition: "all .15s",
-            }}><span>{item.icon}</span>{item.label}</button>
+            }}>
+              <img src={item.icon} alt={item.label} style={{ width: 18, height: 18, objectFit: "contain", opacity: activeNav === item.id ? 1 : 0.6 }} />
+              {item.label}
+            </button>
           ))}
         </nav>
         {/* Profile pill */}
@@ -616,12 +684,12 @@ export default function MovieDate() {
         </div>
       </aside>
 
-      {/* Main */}
+      {/* Main Content Area */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         {/* Topbar */}
         <header style={{ padding: "16px 28px", background: "#13131f", borderBottom: "1px solid #1e1e30", display: "flex", alignItems: "center", gap: 16, flexShrink: 0 }}>
           <div ref={searchRef} style={{ flex: 1, position: "relative" }}>
-            <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#6B7280", fontSize: 16 }}>🔍</span>
+            <img src="/search.png" alt="Search" style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", width: 16, height: 16, objectFit: "contain" }} />
             <input value={searchQ} onChange={e => handleSearchInput(e.target.value)} onFocus={() => searchQ && setShowSearch(true)}
               placeholder={TMDB_KEY ? "Search for a movie to add..." : "⚠️ Set VITE_TMDB_API_KEY in .env"}
               style={{ width: "100%", padding: "10px 14px 10px 40px", background: "#1a1a2e", border: "1px solid #2a2a3e", borderRadius: 10, color: "#fff", fontSize: 14, outline: "none", boxSizing: "border-box" }} />
@@ -646,14 +714,14 @@ export default function MovieDate() {
           </div>
         )}
 
-        {/* Content */}
+        {/* Dynamic Views */}
         <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
           <div style={{ flex: 1, overflowY: "auto", padding: "24px 28px" }}>
             {activeNav === "watchlist" && (
               <>
                 {movies.length === 0 && (
                   <div style={{ textAlign: "center", marginTop: 80, color: "#6B7280" }}>
-                    <div style={{ fontSize: 48, marginBottom: 16 }}>🎬</div>
+                    <img src="/Untitled-4.png" alt="Watchlist Kosong" style={{ width: 200, height: 200, objectFit: "contain", marginBottom: 16, display: "block", marginLeft: "auto", marginRight: "auto" }} />
                     <div style={{ fontSize: 18, fontWeight: 700, color: "#9CA3AF", marginBottom: 8 }}>Watchlist kosong</div>
                     <div style={{ fontSize: 14 }}>Cari film di search bar di atas untuk mulai!</div>
                   </div>
@@ -673,7 +741,7 @@ export default function MovieDate() {
             )}
             {activeNav === "history"   && <HistoryView movies={movies} profiles={profiles} />}
             {activeNav === "analytics" && <AnalyticsView movies={movies} profiles={profiles} />}
-            {activeNav === "settings"  && <SettingsView profiles={profiles} onSave={saveProfiles} />}
+            {activeNav === "settings"  && <SettingsView profiles={profiles} onSave={saveProfiles} onLogout={handleLogout} />}
           </div>
           {selected && activeNav === "watchlist" && (
             <DetailPanel movie={selected} onClose={() => setSelected(null)} onToggleWatch={toggleWatch} profiles={profiles} />
