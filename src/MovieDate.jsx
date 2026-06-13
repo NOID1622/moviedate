@@ -335,33 +335,28 @@ function AvatarUpload({ profile, onUpload, size = 80 }) {
   );
 }
 
-// ── Settings (SUDAH DIPROTEKSI BERDASARKAN USER YANG LOGIN) ──────────────────
+// ── 2. GANTI KOMPONEN SettingsView MENJADI INI ──
 function SettingsView({ profiles, onSave, onLogout }) {
+  const currentRole = localStorage.getItem("my_couple_role") || "me";
+
   const [form, setForm] = useState({
     me:      { ...profiles.me },
     partner: { ...profiles.partner },
   });
   const [saved, setSaved] = useState(false);
 
-  // Mengambil peran user yang sedang aktif di browser ini ('me' atau 'partner')
-  const currentRole = localStorage.getItem("my_couple_role") || "me";
-
   useEffect(() => {
     setForm({ me: { ...profiles.me }, partner: { ...profiles.partner } });
   }, [profiles]);
 
-  function handleName(key, val) {
-    setForm(f => ({ ...f, [key]: { ...f[key], name: val } }));
+  // Fungsi pengubah data yang sudah diperbaiki agar tidak nyasar
+  function handleChange(field, value) {
+    setForm(prev => ({
+      ...prev,
+      [currentRole]: { ...prev[currentRole], [field]: value }
+    }));
   }
-  function handleColor(key, val) {
-    setForm(f => ({ ...f, [key]: { ...f[key], color: val } }));
-  }
-  function handleAvatar(key, dataUrl) {
-    setForm(f => ({ ...f, [key]: { ...f[key], avatar: dataUrl } }));
-  }
-  function handleRemoveAvatar(key) {
-    setForm(f => ({ ...f, [key]: { ...f[key], avatar: null } }));
-  }
+
   function handleSave() {
     onSave(form);
     setSaved(true);
@@ -372,39 +367,36 @@ function SettingsView({ profiles, onSave, onLogout }) {
     <div style={{ padding: 32, color: "#fff", maxWidth: 600 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
         <h2 style={{ fontSize: 24, fontWeight: 800, margin: 0 }}>Settings</h2>
-        <button onClick={onLogout} style={{ marginLeft: "auto", background: "transparent", border: "1px solid #EF4444", color: "#EF4444", borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+        <button onClick={onLogout} style={{ background: "transparent", border: "1px solid #EF4444", color: "#EF4444", borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
           🚪 Keluar Akun
         </button>
       </div>
-      <p style={{ color: "#6B7280", fontSize: 14, marginBottom: 32 }}>Atur profil kamu di sini. Kamu hanya bisa mengubah profil kamu sendiri.</p>
+      <p style={{ color: "#6B7280", fontSize: 14, marginBottom: 32 }}>Kamu hanya bisa mengubah profil kamu sendiri.</p>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 32 }}>
         {["me", "partner"].map(key => {
           const p = form[key];
-          
-          // Kunci jika kolom ini bukan milik user yang sedang login
-          const isNotMyProfile = key !== "me"; 
-          
-          const label = key === "me" ? "👤 Profil Kamu (Bisa Diedit)" : "💜 Profil Partner (Terkunci)";
-          
+          const isNotMyProfile = key !== currentRole;
+          const label = key === currentRole ? "👤 Profil Kamu (Bisa Diedit)" : "💜 Profil Partner (Terkunci)";
+
           return (
             <div key={key} style={{ background: "#1a1a2e", borderRadius: 16, padding: 24, opacity: isNotMyProfile ? 0.6 : 1, border: isNotMyProfile ? "1px solid transparent" : `1px solid ${COLOR_SECONDARY}`, transition: "all 0.3s" }}>
               <div style={{ fontWeight: 700, fontSize: 14, color: isNotMyProfile ? "#6B7280" : COLOR_LIGHT, marginBottom: 20 }}>{label}</div>
 
-              {/* Avatar upload */}
+              {/* Avatar */}
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, marginBottom: 20, pointerEvents: isNotMyProfile ? "none" : "auto" }}>
                 <div style={{ position: "relative" }}>
                   {isNotMyProfile ? (
                     <Avatar profile={p} size={80} />
                   ) : (
-                    <AvatarUpload profile={p} onUpload={url => handleAvatar(key, url)} size={80} />
+                    <AvatarUpload profile={p} onUpload={url => handleChange("avatar", url)} size={80} />
                   )}
                 </div>
-                <div style={{ fontSize: 12, color: "#6B7280", textAlign: "center" }}>
+                <div style={{ fontSize: 12, color: "#6B7280" }}>
                   {isNotMyProfile ? "Profil milik partner" : "Klik foto untuk ganti"}
                 </div>
                 {p.avatar && !isNotMyProfile && (
-                  <button onClick={() => handleRemoveAvatar(key)} style={{ background: "transparent", border: "1px solid #3a3a4e", color: "#9CA3AF", borderRadius: 8, padding: "4px 12px", fontSize: 12, cursor: "pointer" }}>
+                  <button onClick={() => handleChange("avatar", null)} style={{ background: "transparent", border: "1px solid #3a3a4e", color: "#9CA3AF", borderRadius: 8, padding: "4px 12px", fontSize: 12, cursor: "pointer" }}>
                     Hapus Foto
                   </button>
                 )}
@@ -412,25 +404,25 @@ function SettingsView({ profiles, onSave, onLogout }) {
 
               {/* Name */}
               <div style={{ marginBottom: 16 }}>
-                <label style={{ display: "block", marginBottom: 6, color: "#6B7280", fontSize: 12, textTransform: "uppercase", letterSpacing: 0.8 }}>Nama</label>
+                <label style={{ display: "block", marginBottom: 6, color: "#6B7280", fontSize: 12 }}>Nama</label>
                 <input
                   value={p.name}
                   disabled={isNotMyProfile}
-                  onChange={e => handleName(key, e.target.value)}
-                  style={{ width: "100%", padding: "10px 14px", background: isNotMyProfile ? "#141424" : "#0f0f1a", border: "1px solid #2a2a3e", borderRadius: 8, color: isNotMyProfile ? "#6B7280" : "#fff", fontSize: 14, boxSizing: "border-box", outline: "none", cursor: isNotMyProfile ? "not-allowed" : "text" }}
+                  onChange={e => handleChange("name", e.target.value)}
+                  style={{ width: "100%", padding: "10px 14px", background: isNotMyProfile ? "#141424" : "#0f0f1a", border: "1px solid #2a2a3e", borderRadius: 8, color: isNotMyProfile ? "#6B7280" : "#fff", outline: "none" }}
                 />
               </div>
 
               {/* Color */}
               <div>
-                <label style={{ display: "block", marginBottom: 6, color: "#6B7280", fontSize: 12, textTransform: "uppercase", letterSpacing: 0.8 }}>Warna Avatar</label>
+                <label style={{ display: "block", marginBottom: 6, color: "#6B7280", fontSize: 12 }}>Warna Avatar</label>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <input 
-                    type="color" 
-                    value={p.color} 
+                  <input
+                    type="color"
+                    value={p.color}
                     disabled={isNotMyProfile}
-                    onChange={e => handleColor(key, e.target.value)}
-                    style={{ width: 44, height: 36, borderRadius: 8, border: "none", background: "none", cursor: isNotMyProfile ? "not-allowed" : "pointer", padding: 2 }} 
+                    onChange={e => handleChange("color", e.target.value)}
+                    style={{ width: 44, height: 36, borderRadius: 8, border: "none", background: "none", cursor: isNotMyProfile ? "not-allowed" : "pointer", padding: 2 }}
                   />
                   <div style={{ background: p.color, borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 600, color: "#fff" }}>{p.color}</div>
                 </div>
@@ -440,31 +432,12 @@ function SettingsView({ profiles, onSave, onLogout }) {
         })}
       </div>
 
-      <div style={{ background: "#1a1a2e", borderRadius: 16, padding: 20, marginBottom: 24 }}>
-        <div style={{ color: "#6B7280", fontSize: 12, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 14 }}>Preview</div>
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Avatar profile={form.me} size={40} />
-            <span style={{ fontWeight: 600, fontSize: 14 }}>{form.me.name || "?"}</span>
-          </div>
-          <div style={{ color: "#6B7280", fontSize: 20 }}>❤️</div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Avatar profile={form.partner} size={40} />
-            <span style={{ fontWeight: 600, fontSize: 14 }}>{form.partner.name || "?"}</span>
-          </div>
-        </div>
-      </div>
-
-      <button onClick={handleSave} style={{
-        background: saved ? "#34D399" : ACCENT, color: "#fff", border: "none",
-        borderRadius: 10, padding: "13px 32px", fontWeight: 700, fontSize: 15,
-        cursor: "pointer", transition: "background .3s", width: "100%",
-      }}>
+      <button onClick={handleSave} style={{ background: saved ? "#34D399" : ACCENT, color: "#fff", border: "none", borderRadius: 10, padding: "13px 32px", fontWeight: 700, fontSize: 15, cursor: "pointer", width: "100%" }}>
         {saved ? "✓ Tersimpan!" : "Simpan Perubahan"}
       </button>
     </div>
   );
-} 
+}
 
 // ── NAV DATA ──────────────────────────────────────────────────────────────────
 const NAV_ITEMS = [
@@ -674,35 +647,37 @@ export default function MovieDate() {
 
     if (error) alert("Gagal menyimpan review: " + error.message);
   }
+ // ── 1. GANTI FUNGSI saveProfiles MENJADI INI ──
   async function saveProfiles(newForm) {
-      const currentRole = userRole || localStorage.getItem("my_couple_role");
-      
-      if (!currentRole) {
-        alert("Error Internal: Browser tidak mendeteksi akun yang sedang login. Silakan keluar akun dan masuk kembali.");
-        return;
-      }
+    const currentRole = localStorage.getItem("my_couple_role");
 
-      const myUpdatedData = currentRole === "me" ? newForm.me : newForm.partner;
+    if (!currentRole) return;
 
-      const { error } = await supabase
-        .from("profiles")
-        .update({ 
-          name: myUpdatedData.name, 
-          color: myUpdatedData.color, 
-          avatar: myUpdatedData.avatar 
-        })
-        .eq("id", currentRole);
+    const myUpdatedData = newForm[currentRole];
 
-      if (error) {
-        alert("Gagal memperbarui profil: " + error.message);
-      } else {
-        // ── TAMBAHKAN KODE INI AGAR LAYAR LANGSUNG BERUBAH ──
-        setProfiles(prev => ({
-          ...prev,
-          [currentRole]: { ...prev[currentRole], ...myUpdatedData }
-        }));
-      }
+    // Tambahkan .select() agar kita tahu pasti Supabase berhasil menulis datanya
+    const { data, error } = await supabaseSettingsView
+      .from("profiles")
+      .update({
+        name: myUpdatedData.name,
+        color: myUpdatedData.color,
+        avatar: myUpdatedData.avatar
+      })
+      .eq("id", currentRole)
+      .select(); 
+
+    if (error) {
+      alert("Gagal menyimpan ke database: " + error.message);
+    } else if (data && data.length === 0) {
+      alert("Peringatan: Baris data profil tidak ditemukan di Supabase!");
+    } else {
+      // Paksa layar langsung update dengan data yang sah dari database
+      setProfiles(prev => ({
+        ...prev,
+        [currentRole]: { ...prev[currentRole], ...myUpdatedData }
+      }));
     }
+  }
 
   const filterMap = {
     "All": () => true,
