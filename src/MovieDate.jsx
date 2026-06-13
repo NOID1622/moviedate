@@ -8,10 +8,10 @@ import analyticsIcon from "./assets/analytics.png";
 import settingsIcon from "./assets/settings.png";
 
 // ── PALET WARNA BARU ──────────────────────────────────────────────────────────
-const COLOR_PRIMARY   = "#2C5EAD"; // Biru Utama / Aksen
-const COLOR_SECONDARY = "#1591DC"; // Biru Pendukung / Cerah
-const COLOR_LIGHT     = "#4BB8FA"; // Biru Muda / Highlight
-const COLOR_SOFT      = "#C4E2F5"; // Biru Sangat Muda / Soft Text
+const COLOR_PRIMARY   = "#2C5EAD"; 
+const COLOR_SECONDARY = "#1591DC"; 
+const COLOR_LIGHT     = "#4BB8FA"; 
+const COLOR_SOFT      = "#C4E2F5"; 
 
 const ACCENT = COLOR_PRIMARY;
 const YOU_COLOR = COLOR_SECONDARY;
@@ -103,11 +103,11 @@ function MovieCard({ movie, onClick, selected, profiles }) {
   );
 }
 
-// ── Detail Panel & Review / Comment System ────────────────────────────────────
+// ── Detail Panel & Review System ─────────────────────────────────────────────
 function DetailPanel({ movie, onClose, onToggleWatch, onSaveReview, profiles }) {
   if (!movie) return null;
   
-  const currentRole = localStorage.getItem("my_couple_role");
+  const currentRole = localStorage.getItem("my_couple_role") || "me";
   const [commentText, setCommentText] = useState("");
   const [myRating, setMyRating] = useState(movie.user_ratings?.[currentRole] || 0);
   const reviewsList = movie.reviews || [];
@@ -181,12 +181,12 @@ function DetailPanel({ movie, onClose, onToggleWatch, onSaveReview, profiles }) 
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {reviewsList.map((rev, i) => {
               const isFromMe = rev.role === currentRole;
-              const prof = isFromMe ? profiles.me : profiles.partner;
+              const prof = isFromMe ? profiles[currentRole] : profiles[rev.role];
               return (
                 <div key={i} style={{ background: "#1a1a2e", padding: 10, borderRadius: 8 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
                     <Avatar profile={prof} size={20} />
-                    <span style={{ fontWeight: 600, fontSize: 12, color: prof.color }}>{prof.name}</span>
+                    <span style={{ fontWeight: 600, fontSize: 12, color: prof?.color }}>{prof?.name}</span>
                     {rev.rating > 0 && <span style={{ fontSize: 11, color: "#F59E0B", marginLeft: "auto" }}>{"★".repeat(rev.rating)}</span>}
                   </div>
                   <p style={{ margin: 0, fontSize: 12, color: "#D1D5DB", lineHeight: 1.4 }}>{rev.text}</p>
@@ -207,7 +207,6 @@ function DetailPanel({ movie, onClose, onToggleWatch, onSaveReview, profiles }) 
   );
 }
 
-// ── Search Dropdown ───────────────────────────────────────────────────────────
 function SearchDropdown({ results, onAdd, loading }) {
   if (!results.length && !loading) return null;
   return (
@@ -230,7 +229,6 @@ function SearchDropdown({ results, onAdd, loading }) {
   );
 }
 
-// ── Analytics ─────────────────────────────────────────────────────────────────
 function AnalyticsView({ movies, profiles }) {
   const myCount = movies.filter(m => m.status === "both" || m.status === "me").length;
   const ptCount = movies.filter(m => m.status === "both" || m.status === "partner").length;
@@ -258,30 +256,14 @@ function AnalyticsView({ movies, profiles }) {
               <div style={{ marginTop: 8, height: 6, background: "#2a2a3e", borderRadius: 3 }}>
                 <div style={{ width: `${(p.count / total) * 100}%`, height: "100%", background: prof.color, borderRadius: 3, transition: "width .5s" }} />
               </div>
-              <div style={{ marginTop: 6, color: "#6B7280", fontSize: 12 }}>{Math.round((p.count / total) * 100)}% of watchlist</div>
             </div>
           );
         })}
       </div>
-      {genres.length > 0 && (
-        <div style={{ background: "#1a1a2e", borderRadius: 16, padding: 24 }}>
-          <h3 style={{ marginBottom: 16, fontSize: 16, fontWeight: 700, color: "#9CA3AF" }}>Genres on your list</h3>
-          {genres.map(([genre, count]) => (
-            <div key={genre} style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-              <div style={{ width: 90, color: "#D1D5DB", fontSize: 13 }}>{genre}</div>
-              <div style={{ flex: 1, height: 8, background: "#2a2a3e", borderRadius: 4 }}>
-                <div style={{ width: `${(count / total) * 100}%`, height: "100%", background: ACCENT, borderRadius: 4 }} />
-              </div>
-              <div style={{ color: "#9CA3AF", fontSize: 12, width: 20 }}>{count}</div>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
 
-// ── History ───────────────────────────────────────────────────────────────────
 function HistoryView({ movies, profiles }) {
   const watched = movies.filter(m => m.status !== "none");
   return (
@@ -307,7 +289,6 @@ function HistoryView({ movies, profiles }) {
   );
 }
 
-// ── Avatar Upload Button ──────────────────────────────────────────────────────
 function AvatarUpload({ profile, onUpload, size = 80 }) {
   const inputRef = useRef(null);
   function handleFile(e) {
@@ -335,7 +316,7 @@ function AvatarUpload({ profile, onUpload, size = 80 }) {
   );
 }
 
-// ── 2. GANTI KOMPONEN SettingsView MENJADI INI ──
+// ── SettingsView (Sistem Simpan Aman & Indikator Loading) ──
 function SettingsView({ profiles, onSave, onLogout }) {
   const currentRole = localStorage.getItem("my_couple_role") || "me";
 
@@ -343,13 +324,13 @@ function SettingsView({ profiles, onSave, onLogout }) {
     me:      { ...profiles.me },
     partner: { ...profiles.partner },
   });
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     setForm({ me: { ...profiles.me }, partner: { ...profiles.partner } });
   }, [profiles]);
 
-  // Fungsi pengubah data yang sudah diperbaiki agar tidak nyasar
   function handleChange(field, value) {
     setForm(prev => ({
       ...prev,
@@ -357,10 +338,14 @@ function SettingsView({ profiles, onSave, onLogout }) {
     }));
   }
 
-  function handleSave() {
-    onSave(form);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  async function handleSave() {
+    setSaving(true);
+    const success = await onSave(form); // Harus tunggu database selesai!
+    setSaving(false);
+    if (success) {
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    }
   }
 
   return (
@@ -432,14 +417,13 @@ function SettingsView({ profiles, onSave, onLogout }) {
         })}
       </div>
 
-      <button onClick={handleSave} style={{ background: saved ? "#34D399" : ACCENT, color: "#fff", border: "none", borderRadius: 10, padding: "13px 32px", fontWeight: 700, fontSize: 15, cursor: "pointer", width: "100%" }}>
-        {saved ? "✓ Tersimpan!" : "Simpan Perubahan"}
+      <button onClick={handleSave} disabled={saving} style={{ background: saving ? "#374151" : saved ? "#34D399" : ACCENT, color: "#fff", border: "none", borderRadius: 10, padding: "13px 32px", fontWeight: 700, fontSize: 15, cursor: saving ? "not-allowed" : "pointer", width: "100%" }}>
+        {saving ? "Menyimpan ke server..." : saved ? "✓ Tersimpan!" : "Simpan Perubahan"}
       </button>
     </div>
   );
 }
 
-// ── NAV DATA ──────────────────────────────────────────────────────────────────
 const NAV_ITEMS = [
   { id: "watchlist", label: "Shared Watchlist", icon: watchlistIcon },
   { id: "history",   label: "History",          icon: historyIcon },
@@ -450,7 +434,7 @@ const FILTERS = ["All", "Unwatched", "Watched by Me", "Watched by Partner", "Bot
 
 // ── MAIN COMPONENT ────────────────────────────────────────────────────────────
 export default function MovieDate() {
-  const [userRole, setUserRole]       = useState(localStorage.getItem("my_couple_role")); // null jika belum milih
+  const [userRole, setUserRole]       = useState(localStorage.getItem("my_couple_role"));
   const [activeNav, setActiveNav]     = useState("watchlist");
   const [filter, setFilter]           = useState("All");
   const [selected, setSelected]       = useState(null);
@@ -465,13 +449,11 @@ export default function MovieDate() {
   const searchRef  = useRef(null);
   const debounceRef = useRef(null);
 
-  // Fungsi saat user memilih salah satu tombol akun
   function handleSelectRole(role) {
     localStorage.setItem("my_couple_role", role);
     setUserRole(role);
   }
 
-  // Fungsi untuk logout / tukar posisi akun
   function handleLogout() {
     localStorage.removeItem("my_couple_role");
     setUserRole(null);
@@ -479,18 +461,14 @@ export default function MovieDate() {
 
   useEffect(() => {
     async function fetchMovies() {
-      const { data, error } = await supabase
-        .from("movies")
-        .select("*")
-        .order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("movies").select("*").order("created_at", { ascending: false });
       if (!error && data) setMovies(data);
     }
 
-// ── 1. GANTI fungsi fetchProfiles menjadi ini ──
     async function fetchProfiles() {
       const { data, error } = await supabase.from("profiles").select("*");
       if (!error && data) {
-        // Tidak perlu ditukar-tukar lagi. ID 'me' selalu me, ID 'partner' selalu partner
+        // Data tidak akan ditukar-tukar posisinya lagi, jadi aman!
         const dbMe = data.find(p => p.id === "me");
         const dbPartner = data.find(p => p.id === "partner");
 
@@ -504,8 +482,7 @@ export default function MovieDate() {
     fetchMovies();
     fetchProfiles();
 
-    const moviesChannel = supabase
-        .channel("realtime-movies")
+    const moviesChannel = supabase.channel("realtime-movies")
         .on("postgres_changes", { event: "*", scheme: "public", table: "movies" }, (payload) => {
           if (payload.eventType === "INSERT") {
             setMovies(prev => [payload.new, ...prev]);
@@ -515,21 +492,18 @@ export default function MovieDate() {
           } else if (payload.eventType === "DELETE") {
             setMovies(prev => prev.filter(m => m.id !== payload.old.id));
           }
-        })
-        .subscribe();
+        }).subscribe();
 
-    const profilesChannel = supabase
-        .channel("realtime-profiles")
-        .on("postgres_changes", { event: "UPDATE", scheme: "public", table: "profiles" }, (payload) => {
+    const profilesChannel = supabase.channel("realtime-profiles")
+        .on("postgres_changes", { event: "UPDATE", scheme: "public", table: "profiles" }, () => {
           fetchProfiles(); 
-        })
-        .subscribe();
+        }).subscribe();
 
       return () => {
         supabase.removeChannel(moviesChannel);
         supabase.removeChannel(profilesChannel);
       };
-  }, [userRole]); // Trigger ulang ketika userRole berubah
+  }, []); // Hapus userRole dari bracket agar login screen bisa me-load avatar
 
   useEffect(() => {
     const handler = e => { if (searchRef.current && !searchRef.current.contains(e.target)) setShowSearch(false); };
@@ -585,8 +559,8 @@ export default function MovieDate() {
       trailer_key: trailerKey,
       watched: [],
       status: "none",
-      reviews: [],      // ── Kolom penampung komentar ──
-      user_ratings: {}  // ── Kolom penampung rating ──
+      reviews: [],
+      user_ratings: {}
     };
 
     const { error } = await supabase.from("movies").insert([newMovie]);
@@ -599,64 +573,41 @@ export default function MovieDate() {
     const targetMovie = movies.find(m => m.id === movieId);
     if (!targetMovie) return;
 
-    // Memastikan status centang mengikuti hak akses userRole asli di DB
-    const currentRoleActive = userRole || localStorage.getItem("my_couple_role");
-    const dbPerson = person === "me" ? currentRoleActive : (currentRoleActive === "me" ? "partner" : "me");
-
     const currentWatched = targetMovie.watched || [];
-    const nextWatched = currentWatched.includes(dbPerson)
-      ? currentWatched.filter(w => w !== dbPerson)
-      : [...currentWatched, dbPerson];
+    const nextWatched = currentWatched.includes(person)
+      ? currentWatched.filter(w => w !== person)
+      : [...currentWatched, person];
     
     const nextStatus = statusFromWatched(nextWatched);
 
-    const { error } = await supabase
-      .from("movies")
-      .update({ watched: nextWatched, status: nextStatus })
-      .eq("id", movieId);
-
+    const { error } = await supabase.from("movies").update({ watched: nextWatched, status: nextStatus }).eq("id", movieId);
     if (error) alert("Gagal memperbarui status: " + error.message);
   }
 
-  // ── Fungsi untuk menyimpan rating & komentar langsung ke database Supabase ──
   async function handleSaveReview(movieId, reviewText, starRating) {
     const target = movies.find(m => m.id === movieId);
     if (!target) return;
 
     const currentRoleActive = userRole || localStorage.getItem("my_couple_role");
-    
-    // Susun ulang data JSON rating pribadi
     const nextRatings = { ...(target.user_ratings || {}), [currentRoleActive]: starRating };
 
-    // Tambahkan list komentar baru jika teksnya diisi
     let nextReviews = [...(target.reviews || [])];
     if (reviewText.trim()) {
-      nextReviews.push({
-        role: currentRoleActive,
-        text: reviewText,
-        rating: starRating,
-        created_at: new Date().toISOString()
-      });
+      nextReviews.push({ role: currentRoleActive, text: reviewText, rating: starRating, created_at: new Date().toISOString() });
     }
 
-    // Update ke tabel movies Supabase
-    const { error } = await supabase
-      .from("movies")
-      .update({ user_ratings: nextRatings, reviews: nextReviews })
-      .eq("id", movieId);
-
+    const { error } = await supabase.from("movies").update({ user_ratings: nextRatings, reviews: nextReviews }).eq("id", movieId);
     if (error) alert("Gagal menyimpan review: " + error.message);
   }
- // ── 1. GANTI FUNGSI saveProfiles MENJADI INI ──
+
+  // ── FUNGSI SAVE PROFIL YANG SUDAH DIPERBAIKI ──
   async function saveProfiles(newForm) {
     const currentRole = localStorage.getItem("my_couple_role");
-
-    if (!currentRole) return;
+    if (!currentRole) return false; // Kembalikan false jika gagal
 
     const myUpdatedData = newForm[currentRole];
 
-    // Tambahkan .select() agar kita tahu pasti Supabase berhasil menulis datanya
-    const { data, error } = await supabaseSettingsView
+    const { data, error } = await supabase
       .from("profiles")
       .update({
         name: myUpdatedData.name,
@@ -668,14 +619,13 @@ export default function MovieDate() {
 
     if (error) {
       alert("Gagal menyimpan ke database: " + error.message);
-    } else if (data && data.length === 0) {
-      alert("Peringatan: Baris data profil tidak ditemukan di Supabase!");
+      return false;
     } else {
-      // Paksa layar langsung update dengan data yang sah dari database
       setProfiles(prev => ({
         ...prev,
         [currentRole]: { ...prev[currentRole], ...myUpdatedData }
       }));
+      return true; // Beri tahu UI bahwa simpan sukses
     }
   }
 
@@ -688,37 +638,20 @@ export default function MovieDate() {
   };
   const filtered = movies.filter(filterMap[filter]);
 
-  // ── 1. JIKA BELUM LOGIN / PILIH AKUN: TAMPILKAN TOMBOL PILIHAN ──
   if (!userRole) {
     return (
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100vh", background: "#0f0f1a", fontFamily: "'Inter',system-ui,sans-serif", color: "#fff" }}>
         <div style={{ textAlign: "center", marginBottom: 40 }}>
-          <img 
-            src="/logo.png" 
-            alt="Logo" 
-            style={{ 
-              width: 250, 
-              height: 250, 
-              borderRadius: 20, 
-              marginBottom: 16,
-              display: "block",
-              marginLeft: "auto",
-              marginRight: "auto"
-            }} 
-          />
+          <img src="/logo.png" alt="Logo" style={{ width: 250, height: 250, borderRadius: 20, marginBottom: 16, display: "block", marginLeft: "auto", marginRight: "auto" }} />
           <h1 style={{ fontSize: 28, fontWeight: 900, margin: "0 0 8px" }}>Selamat Datang di MovieDate</h1>
           <p style={{ color: "#6B7280", margin: 0 }}>Silakan pilih akun masuk Anda:</p>
         </div>
-
         <div style={{ display: "flex", gap: 20, width: "100%", maxWidth: 480, padding: "0 20px", boxSizing: "border-box" }}>
-          {/* Tombol Akun Saya */}
-          <button onClick={() => handleSelectRole("me")} style={{ flex: 1, padding: "24px", background: "#1a1a2e", border: `2px solid ${COLOR_SECONDARY}`, borderRadius: 16, color: "#fff", cursor: "pointer", transition: "transform .2s", display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+          <button onClick={() => handleSelectRole("me")} style={{ flex: 1, padding: "24px", background: "#1a1a2e", border: `2px solid ${COLOR_SECONDARY}`, borderRadius: 16, color: "#fff", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
             <Avatar profile={profiles.me} size={56} />
             <span style={{ fontWeight: 700, fontSize: 16 }}>Akun Saya</span>
           </button>
-          
-          {/* Tombol Akun Partner */}
-          <button onClick={() => handleSelectRole("partner")} style={{ flex: 1, padding: "24px", background: "#1a1a2e", border: `2px solid ${COLOR_LIGHT}`, borderRadius: 16, color: "#fff", cursor: "pointer", transition: "transform .2s", display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+          <button onClick={() => handleSelectRole("partner")} style={{ flex: 1, padding: "24px", background: "#1a1a2e", border: `2px solid ${COLOR_LIGHT}`, borderRadius: 16, color: "#fff", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
             <Avatar profile={profiles.partner} size={56} />
             <span style={{ fontWeight: 700, fontSize: 16 }}>Akun Partner</span>
           </button>
@@ -727,80 +660,40 @@ export default function MovieDate() {
     );
   }
 
-  // ── 2. JIKA SUDAH PILIH AKUN: TAMPILKAN APLIKASI UTAMA UTUH ──
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "#0f0f1a", fontFamily: "'Inter',system-ui,sans-serif", color: "#fff" }}>
-
-      {/* Sidebar */}
       <aside style={{ width: 240, flexShrink: 0, background: "#13131f", borderRight: "1px solid #1e1e30", display: "flex", flexDirection: "column", padding: "20px 0" }}>
-        <div style={{ padding: "0 20px 24px", borderBottom: "1px solid #1e1e30" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <img src="/logo.png" alt="MovieDate Logo" style={{ width: 40, height: 40, borderRadius: 12, objectFit: "cover" }} />
-            <div>
-              <div style={{ fontWeight: 800, fontSize: 17 }}>MovieDate</div>
-              <div style={{ color: "#6B7280", fontSize: 11 }}>Couple's Watchlist</div>
-            </div>
-          </div>
+        <div style={{ padding: "0 20px 24px", borderBottom: "1px solid #1e1e30", display: "flex", alignItems: "center", gap: 10 }}>
+          <img src="/logo.png" alt="MovieDate Logo" style={{ width: 40, height: 40, borderRadius: 12, objectFit: "cover" }} />
+          <div><div style={{ fontWeight: 800, fontSize: 17 }}>MovieDate</div><div style={{ color: "#6B7280", fontSize: 11 }}>Couple's Watchlist</div></div>
         </div>
         <nav style={{ padding: "16px 12px", flex: 1 }}>
           {NAV_ITEMS.map(item => (
-            <button key={item.id} onClick={() => setActiveNav(item.id)} style={{
-              display: "flex", alignItems: "center", gap: 10, width: "100%",
-              padding: "10px 14px", borderRadius: 10,
-              background: activeNav === item.id ? `${ACCENT}22` : "transparent",
-              border: "none", color: activeNav === item.id ? ACCENT : "#9CA3AF",
-              fontWeight: activeNav === item.id ? 700 : 500,
-              fontSize: 14, cursor: "pointer", marginBottom: 2, transition: "all .15s",
-            }}>
+            <button key={item.id} onClick={() => setActiveNav(item.id)} style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "10px 14px", borderRadius: 10, background: activeNav === item.id ? `${ACCENT}22` : "transparent", border: "none", color: activeNav === item.id ? ACCENT : "#9CA3AF", fontWeight: activeNav === item.id ? 700 : 500, fontSize: 14, cursor: "pointer", marginBottom: 2, transition: "all .15s" }}>
               <img src={item.icon} alt={item.label} style={{ width: 18, height: 18, objectFit: "contain", opacity: activeNav === item.id ? 1 : 0.6 }} />
               {item.label}
             </button>
           ))}
         </nav>
-        {/* Profile pill */}
         <div style={{ margin: "0 12px", background: "#1a1a2e", borderRadius: 12, padding: "12px 14px", display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ display: "flex" }}>
-            <Avatar profile={profiles.me} size={28} />
-            <Avatar profile={profiles.partner} size={28} style={{ marginLeft: -8 }} />
-          </div>
-          <div>
-            <div style={{ fontWeight: 600, fontSize: 13 }}>{profiles.me.name} & {profiles.partner.name}</div>
-            <div style={{ color: "#34D399", fontSize: 11 }}>● Connected Live</div>
-          </div>
+          <div style={{ display: "flex" }}><Avatar profile={profiles.me} size={28} /><Avatar profile={profiles.partner} size={28} style={{ marginLeft: -8 }} /></div>
+          <div><div style={{ fontWeight: 600, fontSize: 13 }}>{profiles.me.name} & {profiles.partner.name}</div><div style={{ color: "#34D399", fontSize: 11 }}>● Connected Live</div></div>
         </div>
       </aside>
-
-      {/* Main Content Area */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-        {/* Topbar */}
         <header style={{ padding: "16px 28px", background: "#13131f", borderBottom: "1px solid #1e1e30", display: "flex", alignItems: "center", gap: 16, flexShrink: 0 }}>
           <div ref={searchRef} style={{ flex: 1, position: "relative" }}>
             <img src="/search.png" alt="Search" style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", width: 16, height: 16, objectFit: "contain" }} />
-            <input value={searchQ} onChange={e => handleSearchInput(e.target.value)} onFocus={() => searchQ && setShowSearch(true)}
-              placeholder={TMDB_KEY ? "Search for a movie to add..." : "⚠️ Set VITE_TMDB_API_KEY in .env"}
-              style={{ width: "100%", padding: "10px 14px 10px 40px", background: "#1a1a2e", border: "1px solid #2a2a3e", borderRadius: 10, color: "#fff", fontSize: 14, outline: "none", boxSizing: "border-box" }} />
+            <input value={searchQ} onChange={e => handleSearchInput(e.target.value)} onFocus={() => searchQ && setShowSearch(true)} placeholder={TMDB_KEY ? "Search for a movie to add..." : "⚠️ Set VITE_TMDB_API_KEY in .env"} style={{ width: "100%", padding: "10px 14px 10px 40px", background: "#1a1a2e", border: "1px solid #2a2a3e", borderRadius: 10, color: "#fff", fontSize: 14, outline: "none", boxSizing: "border-box" }} />
             {showSearch && <SearchDropdown results={tmdbResults} onAdd={handleAddMovie} loading={tmdbLoading} />}
           </div>
           <div style={{ color: "#6B7280", fontSize: 13, whiteSpace: "nowrap" }}>{movies.length} films</div>
         </header>
-
-        {/* Filters */}
         {activeNav === "watchlist" && (
           <div style={{ padding: "12px 28px", background: "#13131f", borderBottom: "1px solid #1e1e30", display: "flex", gap: 8, flexShrink: 0 }}>
-            {FILTERS.map(f => (
-              <button key={f} onClick={() => setFilter(f)} style={{
-                padding: "6px 16px", borderRadius: 20,
-                background: filter === f ? ACCENT : "#1a1a2e",
-                border: filter === f ? "none" : "1px solid #2a2a3e",
-                color: filter === f ? "#fff" : "#9CA3AF",
-                fontWeight: filter === f ? 700 : 500,
-                fontSize: 13, cursor: "pointer", transition: "all .15s",
-              }}>{f}</button>
-            ))}
+            {FILTERS.map(f => <button key={f} onClick={() => setFilter(f)} style={{ padding: "6px 16px", borderRadius: 20, background: filter === f ? ACCENT : "#1a1a2e", border: filter === f ? "none" : "1px solid #2a2a3e", color: filter === f ? "#fff" : "#9CA3AF", fontWeight: filter === f ? 700 : 500, fontSize: 13, cursor: "pointer", transition: "all .15s" }}>{f}</button>)}
           </div>
         )}
-
-        {/* Dynamic Views */}
         <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
           <div style={{ flex: 1, overflowY: "auto", padding: "24px 28px" }}>
             {activeNav === "watchlist" && (
@@ -816,10 +709,7 @@ export default function MovieDate() {
                   <>
                     <div style={{ marginBottom: 16, color: "#6B7280", fontSize: 13 }}>{filtered.length} film{filter !== "All" ? ` · ${filter}` : ""}</div>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(160px,1fr))", gap: 16 }}>
-                      {filtered.map(m => (
-                        <MovieCard key={m.id} movie={m} profiles={profiles} selected={selected?.id === m.id}
-                          onClick={mov => setSelected(selected?.id === mov.id ? null : mov)} />
-                      ))}
+                      {filtered.map(m => <MovieCard key={m.id} movie={m} profiles={profiles} selected={selected?.id === m.id} onClick={mov => setSelected(selected?.id === mov.id ? null : mov)} />)}
                     </div>
                   </>
                 )}
@@ -829,17 +719,7 @@ export default function MovieDate() {
             {activeNav === "analytics" && <AnalyticsView movies={movies} profiles={profiles} />}
             {activeNav === "settings"  && <SettingsView profiles={profiles} onSave={saveProfiles} onLogout={handleLogout} />}
           </div>
-          
-          {/* Detail Panel dengan Review di sebelah Kanan */}
-          {selected && activeNav === "watchlist" && (
-            <DetailPanel 
-              movie={selected} 
-              onClose={() => setSelected(null)} 
-              onToggleWatch={toggleWatch} 
-              onSaveReview={handleSaveReview}
-              profiles={profiles} 
-            />
-          )}
+          {selected && activeNav === "watchlist" && <DetailPanel movie={selected} onClose={() => setSelected(null)} onToggleWatch={toggleWatch} onSaveReview={handleSaveReview} profiles={profiles} />}
         </div>
       </div>
     </div>
