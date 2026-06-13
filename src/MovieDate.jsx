@@ -677,30 +677,35 @@ export default function MovieDate() {
 
     if (error) alert("Gagal menyimpan review: " + error.message);
   }
-
   async function saveProfiles(newForm) {
-    const currentRole = userRole || localStorage.getItem("my_couple_role");
-    
-    if (!currentRole) {
-      alert("Error Internal: Browser tidak mendeteksi akun yang sedang login. Silakan keluar akun dan masuk kembali.");
-      return;
+      const currentRole = userRole || localStorage.getItem("my_couple_role");
+      
+      if (!currentRole) {
+        alert("Error Internal: Browser tidak mendeteksi akun yang sedang login. Silakan keluar akun dan masuk kembali.");
+        return;
+      }
+
+      const myUpdatedData = currentRole === "me" ? newForm.me : newForm.partner;
+
+      const { error } = await supabase
+        .from("profiles")
+        .update({ 
+          name: myUpdatedData.name, 
+          color: myUpdatedData.color, 
+          avatar: myUpdatedData.avatar 
+        })
+        .eq("id", currentRole);
+
+      if (error) {
+        alert("Gagal memperbarui profil: " + error.message);
+      } else {
+        // ── TAMBAHKAN KODE INI AGAR LAYAR LANGSUNG BERUBAH ──
+        setProfiles(prev => ({
+          ...prev,
+          [currentRole]: { ...prev[currentRole], ...myUpdatedData }
+        }));
+      }
     }
-
-    const myUpdatedData = currentRole === "me" ? newForm.me : newForm.partner;
-
-    const { error } = await supabase
-      .from("profiles")
-      .update({ 
-        name: myUpdatedData.name, 
-        color: myUpdatedData.color, 
-        avatar: myUpdatedData.avatar 
-      })
-      .eq("id", currentRole);
-
-    if (error) {
-      alert("Gagal memperbarui profil: " + error.message);
-    } 
-  }
 
   const filterMap = {
     "All": () => true,
