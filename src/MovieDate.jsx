@@ -597,24 +597,31 @@ export default function MovieDate() {
     if (error) alert("Gagal memperbarui status: " + error.message);
   }
 
+
   async function saveProfiles(newForm) {
+    // 1. Cari tahu siapa yang sedang login di browser ini ('me' atau 'partner')
     const partnerRole = userRole === "me" ? "partner" : "me";
 
-    const { error: errorMe } = await supabase
-      .from("profiles")
-      .update({ name: newForm.me.name, color: newForm.me.color, avatar: newForm.me.avatar })
-      .eq("id", userRole);
+    // 2. Siapkan data yang mau diupdate sesuai akun yang sedang aktif
+    // Jika login sebagai 'me', ambil data dari newForm.me
+    // Jika login sebagai 'partner', ambil data dari newForm.partner
+    const myUpdatedData = userRole === "me" ? newForm.me : newForm.partner;
 
-    const { error: errorPartner } = await supabase
+    // 3. Kirim UPDATE hanya untuk ID yang sedang login saja ke Supabase
+    const { error } = await supabase
       .from("profiles")
-      .update({ name: newForm.partner.name, color: newForm.partner.color, avatar: newForm.partner.avatar })
-      .eq("id", partnerRole);
+      .update({ 
+        name: myUpdatedData.name, 
+        color: myUpdatedData.color, 
+        avatar: myUpdatedData.avatar 
+      })
+      .eq("id", userRole); // Mengunci target baris database sesuai userRole aktif
 
-    if (errorMe || errorPartner) {
-      alert("Gagal memperbarui profil di database online.");
+    // 4. Jika ada error, tampilkan detail pesan error aslinya dari Supabase agar mudah dilacak
+    if (error) {
+      alert("Gagal memperbarui profil: " + error.message);
     }
   }
-
   const filterMap = {
     "All": () => true,
     "Unwatched": m => m.status === "none",
