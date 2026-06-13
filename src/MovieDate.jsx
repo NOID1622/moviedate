@@ -738,10 +738,28 @@ export default function MovieDate() {
             </button>
           ))}
         </nav>
-{/* Kotak Profil (Pill) */}
-        <div style={{ margin: "0 12px", background: "#1a1a2e", borderRadius: 12, padding: "12px 14px", display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ display: "flex" }}><Avatar profile={profiles.me} size={28} /><Avatar profile={profiles.partner} size={28} style={{ marginLeft: -8 }} /></div>
-          <div><div style={{ fontWeight: 600, fontSize: 13 }}>{profiles.me.name} & {profiles.partner.name}</div><div style={{ color: "#34D399", fontSize: 11 }}>● Connected Live</div></div>
+{/* Profile pill */}
+        <div style={{ 
+          margin: "0 12px", 
+          // ── UBAH BACKGROUND DI SINI ──
+          background: "rgba(255, 255, 255, 0.1)", // Warna putih transparan 10%
+          backdropFilter: "blur(5px)",            // Opsional: memberi efek buram kaca
+          border: "1px solid rgba(255, 255, 255, 0.1)", // Opsional: garis tepi tipis agar estetik
+          // ────────────────────────────
+          borderRadius: 12, 
+          padding: "12px 14px", 
+          display: "flex", 
+          alignItems: "center", 
+          gap: 10 
+        }}>
+          <div style={{ display: "flex" }}>
+            <Avatar profile={profiles.me} size={28} />
+            <Avatar profile={profiles.partner} size={28} style={{ marginLeft: -8 }} />
+          </div>
+          <div>
+            <div style={{ fontWeight: 600, fontSize: 13 }}>{profiles.me.name} & {profiles.partner.name}</div>
+            <div style={{ color: "#34D399", fontSize: 11 }}>● Connected Live</div>
+          </div>
         </div>
         {/* ── TAMBAHKAN KODE INI DI BAWAH KOTAK PROFIL ── */}
         <div style={{ margin: "16px 12px 0", textAlign: "center", fontSize: 12, color: "#6B7280" }}>
