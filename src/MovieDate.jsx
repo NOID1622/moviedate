@@ -280,13 +280,16 @@ function AvatarUpload({ profile, onUpload, size = 80 }) {
   );
 }
 
-// ── Settings ──────────────────────────────────────────────────────────────────
+// ── Settings (SUDAH DIPROTEKSI BERDASARKAN USER YANG LOGIN) ──────────────────
 function SettingsView({ profiles, onSave, onLogout }) {
   const [form, setForm] = useState({
     me:      { ...profiles.me },
     partner: { ...profiles.partner },
   });
   const [saved, setSaved] = useState(false);
+
+  // Mengambil peran user yang sedang aktif di browser ini ('me' atau 'partner')
+  const currentRole = localStorage.getItem("my_couple_role") || "me";
 
   useEffect(() => {
     setForm({ me: { ...profiles.me }, partner: { ...profiles.partner } });
@@ -312,48 +315,68 @@ function SettingsView({ profiles, onSave, onLogout }) {
 
   return (
     <div style={{ padding: 32, color: "#fff", maxWidth: 600 }}>
-      <div style={{ display: "flex", justifyContent: "between", alignItems: "center", marginBottom: 8 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
         <h2 style={{ fontSize: 24, fontWeight: 800, margin: 0 }}>Settings</h2>
         <button onClick={onLogout} style={{ marginLeft: "auto", background: "transparent", border: "1px solid #EF4444", color: "#EF4444", borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
           🚪 Keluar Akun
         </button>
       </div>
-      <p style={{ color: "#6B7280", fontSize: 14, marginBottom: 32 }}>Atur profil kamu dan pasanganmu di sini.</p>
+      <p style={{ color: "#6B7280", fontSize: 14, marginBottom: 32 }}>Atur profil kamu di sini. Kamu hanya bisa mengubah profil kamu sendiri.</p>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 32 }}>
         {["me", "partner"].map(key => {
           const p = form[key];
-          const label = key === "me" ? "👤 Profil Kamu" : "💜 Profil Partner";
+          
+          // CRITICAL SYSTEM: Kunci jika kolom ini bukan milik user yang sedang login
+          const isNotMyProfile = key !== "me"; 
+          
+          const label = key === "me" ? "👤 Profil Kamu (Bisa Diedit)" : "💜 Profil Partner (Terkunci)";
+          
           return (
-            <div key={key} style={{ background: "#1a1a2e", borderRadius: 16, padding: 24 }}>
-              <div style={{ fontWeight: 700, fontSize: 14, color: "#9CA3AF", marginBottom: 20 }}>{label}</div>
+            <div key={key} style={{ background: "#1a1a2e", borderRadius: 16, padding: 24, opacity: isNotMyProfile ? 0.6 : 1, border: isNotMyProfile ? "1px solid transparent" : `1px solid ${COLOR_SECONDARY}`, transition: "all 0.3s" }}>
+              <div style={{ fontWeight: 700, fontSize: 14, color: isNotMyProfile ? "#6B7280" : COLOR_LIGHT, marginBottom: 20 }}>{label}</div>
 
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, marginBottom: 20 }}>
+              {/* Avatar upload */}
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, marginBottom: 20, pointerEvents: isNotMyProfile ? "none" : "auto" }}>
                 <div style={{ position: "relative" }}>
-                  <AvatarUpload profile={p} onUpload={url => handleAvatar(key, url)} size={80} />
+                  {isNotMyProfile ? (
+                    <Avatar profile={p} size={80} />
+                  ) : (
+                    <AvatarUpload profile={p} onUpload={url => handleAvatar(key, url)} size={80} />
+                  )}
                 </div>
-                <div style={{ fontSize: 12, color: "#6B7280", textAlign: "center" }}>Klik foto untuk ganti</div>
-                {p.avatar && (
+                <div style={{ fontSize: 12, color: "#6B7280", textAlign: "center" }}>
+                  {isNotMyProfile ? "Profil milik partner" : "Klik foto untuk ganti"}
+                </div>
+                {p.avatar && !isNotMyProfile && (
                   <button onClick={() => handleRemoveAvatar(key)} style={{ background: "transparent", border: "1px solid #3a3a4e", color: "#9CA3AF", borderRadius: 8, padding: "4px 12px", fontSize: 12, cursor: "pointer" }}>
                     Hapus Foto
                   </button>
                 )}
               </div>
 
+              {/* Name */}
               <div style={{ marginBottom: 16 }}>
                 <label style={{ display: "block", marginBottom: 6, color: "#6B7280", fontSize: 12, textTransform: "uppercase", letterSpacing: 0.8 }}>Nama</label>
                 <input
                   value={p.name}
+                  disabled={isNotMyProfile}
                   onChange={e => handleName(key, e.target.value)}
-                  style={{ width: "100%", padding: "10px 14px", background: "#0f0f1a", border: "1px solid #2a2a3e", borderRadius: 8, color: "#fff", fontSize: 14, boxSizing: "border-box", outline: "none" }}
+                  style={{ width: "100%", padding: "10px 14px", background: isNotMyProfile ? "#141424" : "#0f0f1a", border: "1px solid #2a2a3e", borderRadius: 8, color: isNotMyProfile ? "#6B7280" : "#fff", fontSize: 14, boxSizing: "border-box", outline: "none", cursor: isNotMyProfile ? "not-allowed" : "text" }}
                 />
               </div>
 
+              {/* Color */}
               <div>
                 <label style={{ display: "block", marginBottom: 6, color: "#6B7280", fontSize: 12, textTransform: "uppercase", letterSpacing: 0.8 }}>Warna Avatar</label>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <input type="color" value={p.color} onChange={e => handleColor(key, e.target.value)}
-                    style={{ width: 44, height: 36, borderRadius: 8, border: "none", background: "none", cursor: "pointer", padding: 2 }} />
+                  <input 
+                    type="color" 
+                    value={p.color} 
+                    disabled={isNotMyProfile}
+                    onChange={e => handleColor(key, e.target.value)}
+                    style={{ width: 44, height: 36, borderRadius: 8, border: "none", background: "none", cursor: isNotMyProfile ? "not-allowed" : "pointer", padding: 2 }} 
+                  />
                   <div style={{ background: p.color, borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 600, color: "#fff" }}>{p.color}</div>
                 </div>
               </div>
@@ -386,7 +409,7 @@ function SettingsView({ profiles, onSave, onLogout }) {
       </button>
     </div>
   );
-}
+} 
 
 // ── NAV DATA ──────────────────────────────────────────────────────────────────
 const NAV_ITEMS = [
