@@ -598,16 +598,22 @@ export default function MovieDate() {
   }
 
 
+// ── GANTI FUNGSI saveProfiles LAMA ANDA DENGAN INI ──
   async function saveProfiles(newForm) {
-    // 1. Cari tahu siapa yang sedang login di browser ini ('me' atau 'partner')
-    const partnerRole = userRole === "me" ? "partner" : "me";
+    // Ambil role aktif saat ini. Jika state userRole kosong, ambil dari localStorage
+    const currentRole = userRole || localStorage.getItem("my_couple_role");
+    
+    if (!currentRole) {
+      alert("Error Internal: Browser tidak mendeteksi akun yang sedang login. Silakan keluar akun dan masuk kembali.");
+      return;
+    }
 
-    // 2. Siapkan data yang mau diupdate sesuai akun yang sedang aktif
-    // Jika login sebagai 'me', ambil data dari newForm.me
-    // Jika login sebagai 'partner', ambil data dari newForm.partner
-    const myUpdatedData = userRole === "me" ? newForm.me : newForm.partner;
+    // Ambil data form yang sesuai dengan akun yang sedang login
+    const myUpdatedData = currentRole === "me" ? newForm.me : newForm.partner;
 
-    // 3. Kirim UPDATE hanya untuk ID yang sedang login saja ke Supabase
+    console.log("Mengirim update ke Supabase untuk ID:", currentRole, myUpdatedData);
+
+    // Kirim data hanya ke baris database miliknya sendiri
     const { error } = await supabase
       .from("profiles")
       .update({ 
@@ -615,11 +621,13 @@ export default function MovieDate() {
         color: myUpdatedData.color, 
         avatar: myUpdatedData.avatar 
       })
-      .eq("id", userRole); // Mengunci target baris database sesuai userRole aktif
+      .eq("id", currentRole); // Mengunci baris berdasarkan 'me' atau 'partner'
 
-    // 4. Jika ada error, tampilkan detail pesan error aslinya dari Supabase agar mudah dilacak
     if (error) {
-      alert("Gagal memperbarui profil: " + error.message);
+      // Menampilkan pesan error asli dari server Supabase agar kita tahu persis kendalanya
+      alert("Gagal memperbarui profil: " + error.message + " (Code: " + error.code + ")");
+    } else {
+      console.log("Update database berhasil!");
     }
   }
   const filterMap = {
