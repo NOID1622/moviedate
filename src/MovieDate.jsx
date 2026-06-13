@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-// ── LANGKAH TAMBAHAN: Import client Supabase yang sudah dibuat di Langkah 6 ──
 import { supabase } from "./supabase"; 
 
 // ── IMPORT ICON PNG LOKAL ─────────────────────────────────────────────────────
@@ -104,12 +103,24 @@ function MovieCard({ movie, onClick, selected, profiles }) {
   );
 }
 
-// ── Detail Panel ──────────────────────────────────────────────────────────────
-function DetailPanel({ movie, onClose, onToggleWatch, profiles }) {
+// ── Detail Panel & Review / Comment System ────────────────────────────────────
+function DetailPanel({ movie, onClose, onToggleWatch, onSaveReview, profiles }) {
   if (!movie) return null;
+  
+  const currentRole = localStorage.getItem("my_couple_role");
+  const [commentText, setCommentText] = useState("");
+  const [myRating, setMyRating] = useState(movie.user_ratings?.[currentRole] || 0);
+  const reviewsList = movie.reviews || [];
+
   const poster = movie.poster
     ? (movie.poster.startsWith("http") ? movie.poster : TMDB_IMG_LG + movie.poster)
     : "https://via.placeholder.com/500x750/1a1a2e/666?text=No+Poster";
+
+  function handleSubmitReview() {
+    if (!commentText.trim() && myRating === 0) return;
+    onSaveReview(movie.id, commentText, myRating);
+    setCommentText("");
+  }
 
   return (
     <div style={{ width: 340, flexShrink: 0, background: "#13131f", borderLeft: "1px solid #2a2a3e", display: "flex", flexDirection: "column", overflowY: "auto" }}>
@@ -122,10 +133,12 @@ function DetailPanel({ movie, onClose, onToggleWatch, profiles }) {
         <h2 style={{ color: "#fff", margin: "0 0 4px", fontSize: 20, fontWeight: 800 }}>{movie.title}</h2>
         <div style={{ color: "#9CA3AF", fontSize: 13, marginBottom: 12 }}>{movie.year} • {movie.genre} • ⭐ {movie.rating}/10</div>
         <StatusBadge status={movie.status} profiles={profiles} />
+        
         <div style={{ margin: "18px 0 8px", color: "#6B7280", fontSize: 11, textTransform: "uppercase", letterSpacing: 1 }}>Synopsis</div>
         <p style={{ color: "#D1D5DB", fontSize: 13, lineHeight: 1.6, margin: 0 }}>{movie.synopsis || "No synopsis available."}</p>
+        
         <div style={{ margin: "18px 0 12px", color: "#6B7280", fontSize: 11, textTransform: "uppercase", letterSpacing: 1 }}>Mark as Watched</div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
           {["me", "partner"].map(key => {
             const p = profiles[key];
             const watched = movie.status === "both" || movie.status === key;
@@ -141,6 +154,48 @@ function DetailPanel({ movie, onClose, onToggleWatch, profiles }) {
             );
           })}
         </div>
+
+        {/* ── SEKSI RATING & KOMENTAR SAYA ── */}
+        <div style={{ borderTop: "1px solid #2a2a3e", paddingTop: 16 }}>
+          <div style={{ color: "#6B7280", fontSize: 11, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Beri Rating Kamu</div>
+          <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
+            {[1, 2, 3, 4, 5].map(star => (
+              <span key={star} onClick={() => setMyRating(star)} style={{ fontSize: 24, cursor: "pointer", color: star <= myRating ? "#F59E0B" : "#374151", transition: "color 0.1s" }}>★</span>
+            ))}
+          </div>
+
+          <div style={{ color: "#6B7280", fontSize: 11, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Tulis Komentar</div>
+          <textarea 
+            value={commentText} 
+            onChange={e => setCommentText(e.target.value)}
+            placeholder="Bagaimana filmnya menurutmu?..."
+            style={{ width: "100%", height: 60, background: "#1a1a2e", border: "1px solid #2a2a3e", borderRadius: 8, color: "#fff", padding: 10, fontSize: 13, resize: "none", outline: "none", boxSizing: "border-box", marginBottom: 10 }}
+          />
+          <button onClick={handleSubmitReview} style={{ width: "100%", background: COLOR_SECONDARY, color: "#fff", border: "none", borderRadius: 8, padding: "8px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>Kirim Review</button>
+        </div>
+
+        {/* ── TAMPILAN LIST KOMENTAR TERSEDIA ── */}
+        <div style={{ marginTop: 24, borderTop: "1px solid #2a2a3e", paddingTop: 16 }}>
+          <div style={{ color: "#6B7280", fontSize: 11, textTransform: "uppercase", letterSpacing: 1, marginBottom: 12 }}>Komentar & Review</div>
+          {reviewsList.length === 0 && <div style={{ fontSize: 12, color: "#4B5563" }}>Belum ada komentar dari kalian.</div>}
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {reviewsList.map((rev, i) => {
+              const isFromMe = rev.role === currentRole;
+              const prof = isFromMe ? profiles.me : profiles.partner;
+              return (
+                <div key={i} style={{ background: "#1a1a2e", padding: 10, borderRadius: 8 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                    <Avatar profile={prof} size={20} />
+                    <span style={{ fontWeight: 600, fontSize: 12, color: prof.color }}>{prof.name}</span>
+                    {rev.rating > 0 && <span style={{ fontSize: 11, color: "#F59E0B", marginLeft: "auto" }}>{"★".repeat(rev.rating)}</span>}
+                  </div>
+                  <p style={{ margin: 0, fontSize: 12, color: "#D1D5DB", lineHeight: 1.4 }}>{rev.text}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
         {movie.trailer_key && (
           <a href={`https://www.youtube.com/watch?v=${movie.trailer_key}`} target="_blank" rel="noreferrer"
             style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 20, padding: 12, background: ACCENT, borderRadius: 10, color: "#fff", textDecoration: "none", fontWeight: 700, fontSize: 14 }}>
@@ -327,7 +382,7 @@ function SettingsView({ profiles, onSave, onLogout }) {
         {["me", "partner"].map(key => {
           const p = form[key];
           
-          // CRITICAL SYSTEM: Kunci jika kolom ini bukan milik user yang sedang login
+          // Kunci jika kolom ini bukan milik user yang sedang login
           const isNotMyProfile = key !== "me"; 
           
           const label = key === "me" ? "👤 Profil Kamu (Bisa Diedit)" : "💜 Profil Partner (Terkunci)";
@@ -457,15 +512,8 @@ export default function MovieDate() {
         .order("created_at", { ascending: false });
       if (!error && data) setMovies(data);
     }
-    async function fetchMovies() {
-      const { data, error } = await supabase
-        .from("movies")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (!error && data) setMovies(data);
-    }
 
-  async function fetchProfiles() {
+    async function fetchProfiles() {
       const { data, error } = await supabase.from("profiles").select("*");
       if (!error && data) {
         // Menentukan role secara dinamis jika user sudah login, 
@@ -511,7 +559,7 @@ export default function MovieDate() {
         supabase.removeChannel(moviesChannel);
         supabase.removeChannel(profilesChannel);
       };
-    }, [userRole]); // Trigger ulang ketika userRole berubah
+  }, [userRole]); // Trigger ulang ketika userRole berubah
 
   useEffect(() => {
     const handler = e => { if (searchRef.current && !searchRef.current.contains(e.target)) setShowSearch(false); };
@@ -566,7 +614,9 @@ export default function MovieDate() {
       synopsis: tmdbMovie.synopsis,
       trailer_key: trailerKey,
       watched: [],
-      status: "none"
+      status: "none",
+      reviews: [],      // ── Kolom penampung komentar ──
+      user_ratings: {}  // ── Kolom penampung rating ──
     };
 
     const { error } = await supabase.from("movies").insert([newMovie]);
@@ -580,9 +630,10 @@ export default function MovieDate() {
     if (!targetMovie) return;
 
     // Memastikan status centang mengikuti hak akses userRole asli di DB
-    const currentWatched = targetMovie.watched || [];
-    const dbPerson = person === "me" ? userRole : (userRole === "me" ? "partner" : "me");
+    const currentRoleActive = userRole || localStorage.getItem("my_couple_role");
+    const dbPerson = person === "me" ? currentRoleActive : (currentRoleActive === "me" ? "partner" : "me");
 
+    const currentWatched = targetMovie.watched || [];
     const nextWatched = currentWatched.includes(dbPerson)
       ? currentWatched.filter(w => w !== dbPerson)
       : [...currentWatched, dbPerson];
@@ -597,10 +648,37 @@ export default function MovieDate() {
     if (error) alert("Gagal memperbarui status: " + error.message);
   }
 
+  // ── Fungsi untuk menyimpan rating & komentar langsung ke database Supabase ──
+  async function handleSaveReview(movieId, reviewText, starRating) {
+    const target = movies.find(m => m.id === movieId);
+    if (!target) return;
 
-// ── GANTI FUNGSI saveProfiles LAMA ANDA DENGAN INI ──
+    const currentRoleActive = userRole || localStorage.getItem("my_couple_role");
+    
+    // Susun ulang data JSON rating pribadi
+    const nextRatings = { ...(target.user_ratings || {}), [currentRoleActive]: starRating };
+
+    // Tambahkan list komentar baru jika teksnya diisi
+    let nextReviews = [...(target.reviews || [])];
+    if (reviewText.trim()) {
+      nextReviews.push({
+        role: currentRoleActive,
+        text: reviewText,
+        rating: starRating,
+        created_at: new Date().toISOString()
+      });
+    }
+
+    // Update ke tabel movies Supabase
+    const { error } = await supabase
+      .from("movies")
+      .update({ user_ratings: nextRatings, reviews: nextReviews })
+      .eq("id", movieId);
+
+    if (error) alert("Gagal menyimpan review: " + error.message);
+  }
+
   async function saveProfiles(newForm) {
-    // Ambil role aktif saat ini. Jika state userRole kosong, ambil dari localStorage
     const currentRole = userRole || localStorage.getItem("my_couple_role");
     
     if (!currentRole) {
@@ -608,12 +686,8 @@ export default function MovieDate() {
       return;
     }
 
-    // Ambil data form yang sesuai dengan akun yang sedang login
     const myUpdatedData = currentRole === "me" ? newForm.me : newForm.partner;
 
-    console.log("Mengirim update ke Supabase untuk ID:", currentRole, myUpdatedData);
-
-    // Kirim data hanya ke baris database miliknya sendiri
     const { error } = await supabase
       .from("profiles")
       .update({ 
@@ -621,15 +695,13 @@ export default function MovieDate() {
         color: myUpdatedData.color, 
         avatar: myUpdatedData.avatar 
       })
-      .eq("id", currentRole); // Mengunci baris berdasarkan 'me' atau 'partner'
+      .eq("id", currentRole);
 
     if (error) {
-      // Menampilkan pesan error asli dari server Supabase agar kita tahu persis kendalanya
-      alert("Gagal memperbarui profil: " + error.message + " (Code: " + error.code + ")");
-    } else {
-      console.log("Update database berhasil!");
-    }
+      alert("Gagal memperbarui profil: " + error.message);
+    } 
   }
+
   const filterMap = {
     "All": () => true,
     "Unwatched": m => m.status === "none",
@@ -664,14 +736,12 @@ export default function MovieDate() {
         <div style={{ display: "flex", gap: 20, width: "100%", maxWidth: 480, padding: "0 20px", boxSizing: "border-box" }}>
           {/* Tombol Akun Saya */}
           <button onClick={() => handleSelectRole("me")} style={{ flex: 1, padding: "24px", background: "#1a1a2e", border: `2px solid ${COLOR_SECONDARY}`, borderRadius: 16, color: "#fff", cursor: "pointer", transition: "transform .2s", display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
-            {/* MENGGUNAKAN AVATAR BULAT DINAMIS */}
             <Avatar profile={profiles.me} size={56} />
             <span style={{ fontWeight: 700, fontSize: 16 }}>Akun Saya</span>
           </button>
           
           {/* Tombol Akun Partner */}
           <button onClick={() => handleSelectRole("partner")} style={{ flex: 1, padding: "24px", background: "#1a1a2e", border: `2px solid ${COLOR_LIGHT}`, borderRadius: 16, color: "#fff", cursor: "pointer", transition: "transform .2s", display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
-            {/* MENGGUNAKAN AVATAR BULAT DINAMIS */}
             <Avatar profile={profiles.partner} size={56} />
             <span style={{ fontWeight: 700, fontSize: 16 }}>Akun Partner</span>
           </button>
@@ -679,6 +749,7 @@ export default function MovieDate() {
       </div>
     );
   }
+
   // ── 2. JIKA SUDAH PILIH AKUN: TAMPILKAN APLIKASI UTAMA UTUH ──
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "#0f0f1a", fontFamily: "'Inter',system-ui,sans-serif", color: "#fff" }}>
@@ -781,8 +852,16 @@ export default function MovieDate() {
             {activeNav === "analytics" && <AnalyticsView movies={movies} profiles={profiles} />}
             {activeNav === "settings"  && <SettingsView profiles={profiles} onSave={saveProfiles} onLogout={handleLogout} />}
           </div>
+          
+          {/* Detail Panel dengan Review di sebelah Kanan */}
           {selected && activeNav === "watchlist" && (
-            <DetailPanel movie={selected} onClose={() => setSelected(null)} onToggleWatch={toggleWatch} profiles={profiles} />
+            <DetailPanel 
+              movie={selected} 
+              onClose={() => setSelected(null)} 
+              onToggleWatch={toggleWatch} 
+              onSaveReview={handleSaveReview}
+              profiles={profiles} 
+            />
           )}
         </div>
       </div>
