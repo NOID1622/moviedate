@@ -173,7 +173,7 @@ function DetailPanel({ movie, onClose, onToggleWatch, onSaveReview, profiles }) 
                     cursor: isNotMyProfile ? "not-allowed" : "pointer" 
                   }}
                 >
-                  {isNotMyProfile ? "🔒 Terkunci" : (watched ? "Undo" : "Mark")}
+                  {isNotMyProfile ? "mark" : (watched ? "Undo" : "Mark")}
                 </button>
               </div>
             );
@@ -193,7 +193,7 @@ function DetailPanel({ movie, onClose, onToggleWatch, onSaveReview, profiles }) 
           <textarea 
             value={commentText} 
             onChange={e => setCommentText(e.target.value)}
-            placeholder="Bagaimana filmnya menurutmu?..."
+            placeholder="Bagaimana filmnya menurutmu sayang?..."
             style={{ width: "100%", height: 60, background: "#1a1a2e", border: "1px solid #2a2a3e", borderRadius: 8, color: "#fff", padding: 10, fontSize: 13, resize: "none", outline: "none", boxSizing: "border-box", marginBottom: 10 }}
           />
           <button onClick={handleSubmitReview} style={{ width: "100%", background: COLOR_SECONDARY, color: "#fff", border: "none", borderRadius: 8, padding: "8px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>Kirim Review</button>
@@ -401,7 +401,7 @@ function SettingsView({ profiles, onSave, onLogout }) {
         {["me", "partner"].map(key => {
           const p = form[key];
           const isNotMyProfile = key !== currentRole;
-          const label = key === currentRole ? "👤 Profil Kamu (Bisa Diedit)" : "💜 Profil Partner (Terkunci)";
+          const label = key === currentRole ? "The Admin" : "💜 My Love";
 
           return (
             <div key={key} style={{ background: "#1a1a2e", borderRadius: 16, padding: 24, opacity: isNotMyProfile ? 0.6 : 1, border: isNotMyProfile ? "1px solid transparent" : `1px solid ${COLOR_SECONDARY}`, transition: "all 0.3s" }}>
@@ -738,7 +738,7 @@ export default function MovieDate() {
             </button>
           ))}
         </nav>
-{/* Profile pill */}
+{/* Profile pill (konek life design)*/}
         <div style={{ 
           margin: "0 12px", 
           // ── UBAH BACKGROUND DI SINI ──
