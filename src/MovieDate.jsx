@@ -9,7 +9,7 @@ import analyticsIcon from "./assets/analytics.png";
 import settingsIcon from "./assets/settings.png";
 import powerIcon from "./assets/power.png";
 // bg
-import sidebarBg from "./assets/bg-sidebarkanan.jpg";
+import sidebarBg from "./assets/kupu2.PNG";
 import loginBg from "./assets/bgfull.jpg"
 // ── PALET WARNA BARU ──────────────────────────────────────────────────────────
 const COLOR_PRIMARY   = "#2C5EAD"; 
@@ -489,9 +489,12 @@ export default function MovieDate() {
   const debounceRef = useRef(null);
 
   function handleSelectRole(role) {
-    localStorage.setItem("my_couple_role", role);
-    setUserRole(role);
-  }
+      localStorage.setItem("my_couple_role", role);
+      setUserRole(role);
+      
+      // ── KODE BARU: PAKSA PINDAH KE HALAMAN WATCHLIST ──
+      setActiveNav("watchlist"); 
+    }
 
   function handleLogout() {
     localStorage.removeItem("my_couple_role");
