@@ -1,0 +1,17 @@
+@font-face {
+  font-family: 'judul'; /* Anda bebas menamai font ini */
+  src: url('./fonts/Darling.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'nama'; /* Anda bebas menamai font ini */
+  src: url('./fonts/Cute Notes.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+
+/* PENTING: JANGAN tambahkan font-family ini ke tag body{} 
+   agar font dasar aplikasi tetap normal (Inter/sans-serif) */

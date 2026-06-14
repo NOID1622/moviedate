@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabase"; 
+import "./App.css";
 
 // ── IMPORT ICON PNG LOKAL ─────────────────────────────────────────────────────
 import watchlistIcon from "./assets/watchlist.png";
@@ -702,7 +703,7 @@ export default function MovieDate() {
       }}>
         <div style={{ textAlign: "center", marginBottom: 40, zIndex: 10 }}>
           <img src="/logo.png" alt="Logo" style={{ width: 250, height: 250, borderRadius: 20, marginBottom: 16, display: "block", marginLeft: "auto", marginRight: "auto"}} />
-          <h1 style={{ fontSize: 28, fontWeight: 900, margin: "0 0 8px", textShadow: "0 2px 10px rgba(0,0,0,0.8)" }}>MovieDate</h1>
+          <h1 style={{ fontFamily: "judul, sans-serif", fontSize: 80,color:"#AACCD6", fontWeight: 900, margin: "0 0 8px", textShadow: "0 2px 10px rgba(0,0,0,0.8)" }}>MovieDate</h1>
           <p style={{ color: "#E5E7EB", margin: 0, textShadow: "0 1px 5px rgba(0,0,0,0.8)" }}>Nonton apa ya hari ni...</p>
         </div>
 
@@ -730,7 +731,7 @@ export default function MovieDate() {
               transition: "all 0.2s ease-in-out" // ── Animasi halus ──
             }}>
             <Avatar profile={profiles.me} size={56} />
-            <span style={{ fontWeight: 700, fontSize: 16 }}>Noid</span>
+            <span style={{ fontFamily: "nama, sans-serif",fontWeight: 100, fontSize: 16 }}>Noid</span>
           </button>
           
           {/* Tombol Akun Partner (Veren) */}
