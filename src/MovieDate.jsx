@@ -7,10 +7,9 @@ import historyIcon from "./assets/history.png";
 import analyticsIcon from "./assets/analytics.png";
 import settingsIcon from "./assets/settings.png";
 import powerIcon from "./assets/power.png";
-
-// bg sidebar
+// bg
 import sidebarBg from "./assets/bg-sidebarkanan.jpg";
-
+import loginBg from "./assets/bgfull.jpg"
 // ── PALET WARNA BARU ──────────────────────────────────────────────────────────
 const COLOR_PRIMARY   = "#2C5EAD"; 
 const COLOR_SECONDARY = "#1591DC"; 
@@ -61,10 +60,10 @@ function StatusBadge({ status, profiles }) {
   const meName = profiles?.me?.name || "You";
   const ptName = profiles?.partner?.name || "Partner";
   const map = {
-    both:    { label: `Both watched`,    bg: "rgba(44, 94, 173, 0.2)",  color: COLOR_SOFT,     icon: "👫" },
-    me:      { label: `${meName} watched`, bg: "rgba(21, 145, 220, 0.2)", color: YOU_COLOR,     icon: "🧑" },
-    partner: { label: `${ptName} watched`, bg: "rgba(75, 184, 250, 0.2)", color: PARTNER_COLOR, icon: "💑" },
-    none:    { label: "Not watched",       bg: "rgba(255,255,255,.08)",   color: "#9CA3AF",      icon: "👁"  },
+    both:    { label: `Both watched`,    bg: "rgba(171, 255, 68, 0.8)",  color: COLOR_SOFT,     icon: "" },
+    me:      { label: `${meName} watched`, bg: "rgba(21, 145, 220, 0.2)", color: YOU_COLOR,     icon: "" },
+    partner: { label: `${ptName} watched`, bg: "rgba(75, 184, 250, 0.2)", color: PARTNER_COLOR, icon: "" },
+    none:    { label: "Not watched",       bg: "rgba(255,255,255,.08)",   color: "#9CA3AF",      icon: ""  },
   };
   const st = map[status] || map.none;
   return (
@@ -676,29 +675,93 @@ export default function MovieDate() {
     "Both Watched": m => m.status === "both",
   };
   const filtered = movies.filter(filterMap[filter]);
-
+// ── SCREEN 1: LOGIN PILIHAN USER ──
   if (!userRole) {
     return (
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100vh", background: "#0f0f1a", fontFamily: "'Inter',system-ui,sans-serif", color: "#fff" }}>
-        <div style={{ textAlign: "center", marginBottom: 40 }}>
-          <img src="/logo.png" alt="Logo" style={{ width: 250, height: 250, borderRadius: 20, marginBottom: 16, display: "block", marginLeft: "auto", marginRight: "auto" }} />
-          <h1 style={{ fontSize: 28, fontWeight: 900, margin: "0 0 8px" }}>Selamat Datang di MovieDate</h1>
-          <p style={{ color: "#6B7280", margin: 0 }}>Silakan pilih akun masuk Anda:</p>
+      <div style={{ 
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100vw",
+        height: "100vh",
+        zIndex: 9999,
+        display: "flex", 
+        flexDirection: "column", 
+        alignItems: "center", 
+        justifyContent: "center", 
+        
+        // ── PENGATURAN BACKGROUND AMAN ──
+        backgroundImage: `linear-gradient(rgba(15, 15, 26, 0.6), rgba(15, 15, 26, 0.6)), url(${loginBg})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundColor: "#0f0f1a",
+        // ────────────────────────────────
+        
+        fontFamily: "'Inter',system-ui,sans-serif", 
+        color: "#fff" 
+      }}>
+        <div style={{ textAlign: "center", marginBottom: 40, zIndex: 10 }}>
+          <img src="/logo.png" alt="Logo" style={{ width: 250, height: 250, borderRadius: 20, marginBottom: 16, display: "block", marginLeft: "auto", marginRight: "auto"}} />
+          <h1 style={{ fontSize: 28, fontWeight: 900, margin: "0 0 8px", textShadow: "0 2px 10px rgba(0,0,0,0.8)" }}>MovieDate</h1>
+          <p style={{ color: "#E5E7EB", margin: 0, textShadow: "0 1px 5px rgba(0,0,0,0.8)" }}>Nonton apa ya hari ni...</p>
         </div>
-        <div style={{ display: "flex", gap: 20, width: "100%", maxWidth: 480, padding: "0 20px", boxSizing: "border-box" }}>
-          <button onClick={() => handleSelectRole("me")} style={{ flex: 1, padding: "24px", background: "#1a1a2e", border: `2px solid ${COLOR_SECONDARY}`, borderRadius: 16, color: "#fff", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+
+<div style={{ display: "flex", gap: 20, width: "100%", maxWidth: 480, padding: "0 20px", boxSizing: "border-box", zIndex: 10 }}>
+          
+          {/* Tombol Akun Saya (Noid) */}
+          <button 
+            onClick={() => handleSelectRole("me")} 
+            onMouseEnter={e => { 
+              e.currentTarget.style.border = `1px solid ${COLOR_SECONDARY}`; 
+              e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)"; 
+            }}
+            onMouseLeave={e => { 
+              e.currentTarget.style.border = "1px solid rgba(255, 255, 255, 0.15)"; 
+              e.currentTarget.style.background = "rgba(255, 255, 255, 0.03)"; 
+            }}
+            style={{ 
+              flex: 1, padding: "24px", 
+              background: "rgba(255, 255, 255, 0.03)", // ── Background hampir transparan ──
+              backdropFilter: "blur(10px)", 
+              border: "1px solid rgba(255, 255, 255, 0.15)", // ── Garis tepi tipis bawaan kaca ──
+              borderRadius: 16, color: "#fff", cursor: "pointer", 
+              display: "flex", flexDirection: "column", alignItems: "center", gap: 12, 
+              boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
+              transition: "all 0.2s ease-in-out" // ── Animasi halus ──
+            }}>
             <Avatar profile={profiles.me} size={56} />
-            <span style={{ fontWeight: 700, fontSize: 16 }}>Akun Saya</span>
+            <span style={{ fontWeight: 700, fontSize: 16 }}>Noid</span>
           </button>
-          <button onClick={() => handleSelectRole("partner")} style={{ flex: 1, padding: "24px", background: "#1a1a2e", border: `2px solid ${COLOR_LIGHT}`, borderRadius: 16, color: "#fff", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+          
+          {/* Tombol Akun Partner (Veren) */}
+          <button 
+            onClick={() => handleSelectRole("partner")} 
+            onMouseEnter={e => { 
+              e.currentTarget.style.border = `1px solid ${COLOR_LIGHT}`; 
+              e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)"; 
+            }}
+            onMouseLeave={e => { 
+              e.currentTarget.style.border = "1px solid rgba(255, 255, 255, 0.15)"; 
+              e.currentTarget.style.background = "rgba(255, 255, 255, 0.03)"; 
+            }}
+            style={{ 
+              flex: 1, padding: "24px", 
+              background: "rgba(255, 255, 255, 0.03)", // ── Background hampir transparan ──
+              backdropFilter: "blur(10px)", 
+              border: "1px solid rgba(255, 255, 255, 0.15)", // ── Garis tepi tipis bawaan kaca ──
+              borderRadius: 16, color: "#fff", cursor: "pointer", 
+              display: "flex", flexDirection: "column", alignItems: "center", gap: 12, 
+              boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
+              transition: "all 0.2s ease-in-out" // ── Animasi halus ──
+            }}>
             <Avatar profile={profiles.partner} size={56} />
-            <span style={{ fontWeight: 700, fontSize: 16 }}>Akun Partner</span>
+            <span style={{ fontWeight: 700, fontSize: 16 }}>Veren</span>
           </button>
+
         </div>
       </div>
     );
   }
-
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "#0f0f1a", fontFamily: "'Inter',system-ui,sans-serif", color: "#fff" }}>
      <aside style={{ 
