@@ -19,6 +19,13 @@
   font-style: normal;
 }
 
+@font-face {
+  font-family: 'gantung'; /* Anda bebas menamai font ini */
+  src: url('./fonts/Hanged Letters.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 
 /* PENTING: JANGAN tambahkan font-family ini ke tag body{} 
    agar font dasar aplikasi tetap normal (Inter/sans-serif) */

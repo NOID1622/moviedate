@@ -264,7 +264,7 @@ function AnalyticsView({ movies, profiles }) {
 
   return (
     <div style={{ padding: 32, color: "#fff", maxWidth: 800 }}>
-      <h2 style={{ marginBottom: 24, fontSize: 24, fontWeight: 800 }}>Who Watched More?</h2>
+      <h2 style={{ fontfamily :"gantung, sans-serif",marginBottom: 24, fontSize: 24, fontWeight: 800 }}>Who Watched More?</h2>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 32 }}>
         {[{ key: "me", count: myCount }, { key: "partner", count: ptCount }].map(p => {
           const prof = profiles[p.key];
@@ -494,6 +494,7 @@ export default function MovieDate() {
       
       // ── KODE BARU: PAKSA PINDAH KE HALAMAN WATCHLIST ──
       setActiveNav("watchlist"); 
+      setFilter("Unwatched");
     }
 
   function handleLogout() {
@@ -802,8 +803,8 @@ export default function MovieDate() {
         padding: "20px 0" 
       }}>
         <div style={{ padding: "0 20px 24px", borderBottom: "1px solid #1e1e30", display: "flex", alignItems: "center", gap: 10 }}>
-          <img src="/logo.png" alt="MovieDate Logo" style={{ width: 40, height: 40, borderRadius: 12, objectFit: "cover" }} />
-          <div><div style={{ fontWeight: 800, fontSize: 17 }}>MovieDate</div><div style={{ color: "#AACCD6", fontSize: 11 }}>Couple's Watchlist</div></div>
+          <img src="/logo.png" alt="MovieDate Logo" style={{ width: 80, height: 80, borderRadius: 12, objectFit: "cover" }} />
+          <div><div style={{ fontFamily: "judul, sans-serif",fontWeight: 100, fontSize: 26 }}>MovieDate</div><div style={{ color: "#AACCD6", fontSize: 11 }}>Couple's Watchlist</div></div>
         </div>
         <nav style={{ padding: "16px 12px", flex: 1 }}>
           {NAV_ITEMS.map(item => (
