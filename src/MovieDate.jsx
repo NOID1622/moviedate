@@ -193,7 +193,7 @@ function DetailPanel({ movie, onClose, onToggleWatch, onSaveReview, profiles }) 
           <textarea 
             value={commentText} 
             onChange={e => setCommentText(e.target.value)}
-            placeholder="Bagaimana filmnya menurutmu sayang?..."
+            placeholder="Bagaimana filmnya menurutmu love?..."
             style={{ width: "100%", height: 60, background: "#1a1a2e", border: "1px solid #2a2a3e", borderRadius: 8, color: "#fff", padding: 10, fontSize: 13, resize: "none", outline: "none", boxSizing: "border-box", marginBottom: 10 }}
           />
           <button onClick={handleSubmitReview} style={{ width: "100%", background: COLOR_SECONDARY, color: "#fff", border: "none", borderRadius: 8, padding: "8px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>Kirim Review</button>
@@ -553,25 +553,44 @@ export default function MovieDate() {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
-
-  function handleSearchInput(val) {
+function handleSearchInput(val) {
     setSearchQ(val);
     setShowSearch(true);
     clearTimeout(debounceRef.current);
     if (!val.trim()) { setTmdbResults([]); return; }
     setTmdbLoading(true);
-    const GENRE_MAP = { 28:"Action",12:"Adventure",16:"Animation",35:"Comedy",80:"Crime",99:"Documentary",18:"Drama",10751:"Family",14:"Fantasy",36:"History",27:"Horror",10402:"Music",9648:"Mystery",10749:"Romance",878:"Sci-Fi",53:"Thriller",10752:"War",37:"Western" };
+    
+    // Pemetaan genre gabungan Movie & TV Show
+    const GENRE_MAP = { 28:"Action",12:"Adventure",16:"Animation",35:"Comedy",80:"Crime",99:"Documentary",18:"Drama",10751:"Family",14:"Fantasy",36:"History",27:"Horror",10402:"Music",9648:"Mystery",10749:"Romance",878:"Sci-Fi",53:"Thriller",10752:"War",37:"Western", 10759:"Action & Adventure", 10762:"Kids", 10763:"News", 10764:"Reality", 10765:"Sci-Fi & Fantasy", 10766:"Soap", 10767:"Talk", 10768:"War & Politics" };
+    
     debounceRef.current = setTimeout(async () => {
       try {
-        const res  = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(val)}&language=en-US&page=1`);
+        // ── KUNCI PERUBAHAN: Mengubah 'movie' menjadi 'multi' ──
+        const res  = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_KEY}&query=${encodeURIComponent(val)}&language=en-US&page=1`);
         const data = await res.json();
-        setTmdbResults((data.results || []).slice(0, 8).map(m => ({
-          id: m.id, title: m.title,
-          year: m.release_date ? m.release_date.slice(0, 4) : "N/A",
-          genre: m.genre_ids?.[0] ? (GENRE_MAP[m.genre_ids[0]] || "Other") : "Other",
-          rating: m.vote_average ? m.vote_average.toFixed(1) : "N/A",
-          poster: m.poster_path || null, synopsis: m.overview || "", tmdb_id: m.id,
-        })));
+        
+        // Filter hasil agar hanya mengambil 'movie' dan 'tv' saja (membuang hasil berupa nama orang/aktor)
+        const filteredResults = (data.results || []).filter(item => item.media_type === "movie" || item.media_type === "tv");
+
+        setTmdbResults(filteredResults.slice(0, 8).map(m => {
+          // TV Series menggunakan 'name' & 'first_air_date', Movie menggunakan 'title' & 'release_date'
+          const title = m.title || m.name;
+          const date = m.release_date || m.first_air_date;
+          const year = date ? date.slice(0, 4) : "N/A";
+          const typeLabel = m.media_type === "tv" ? "📺 Series" : "🎬 Movie";
+
+          return {
+            id: m.id, 
+            title: title,
+            year: year,
+            // Menampilkan label tipe (Movie/Series) di samping genre agar informatif
+            genre: `${typeLabel} • ${m.genre_ids?.[0] ? (GENRE_MAP[m.genre_ids[0]] || "Other") : "Other"}`,
+            rating: m.vote_average ? m.vote_average.toFixed(1) : "N/A",
+            poster: m.poster_path || null, 
+            synopsis: m.overview || "", 
+            tmdb_id: m.id,
+          };
+        }));
       } catch { setTmdbResults([]); }
       finally { setTmdbLoading(false); }
     }, 400);
@@ -857,7 +876,7 @@ export default function MovieDate() {
         <header style={{ padding: "16px 28px", background: "#13131f", borderBottom: "1px solid #1e1e30", display: "flex", alignItems: "center", gap: 16, flexShrink: 0 }}>
           <div ref={searchRef} style={{ flex: 1, position: "relative" }}>
             <img src="/search.png" alt="Search" style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", width: 16, height: 16, objectFit: "contain" }} />
-            <input value={searchQ} onChange={e => handleSearchInput(e.target.value)} onFocus={() => searchQ && setShowSearch(true)} placeholder={TMDB_KEY ? "Search for a movie to add..." : "⚠️ Set VITE_TMDB_API_KEY in .env"} style={{ width: "100%", padding: "10px 14px 10px 40px", background: "#1a1a2e", border: "1px solid #2a2a3e", borderRadius: 10, color: "#fff", fontSize: 14, outline: "none", boxSizing: "border-box" }} />
+            <input value={searchQ} onChange={e => handleSearchInput(e.target.value)} onFocus={() => searchQ && setShowSearch(true)} placeholder={TMDB_KEY ? "tambahkan film atau seriesmu love..." : "⚠️ Set VITE_TMDB_API_KEY in .env"} style={{ width: "100%", padding: "10px 14px 10px 40px", background: "#1a1a2e", border: "1px solid #2a2a3e", borderRadius: 10, color: "#fff", fontSize: 14, outline: "none", boxSizing: "border-box" }} />
             {showSearch && <SearchDropdown results={tmdbResults} onAdd={handleAddMovie} loading={tmdbLoading} />}
           </div>
           <div style={{ color: "#6B7280", fontSize: 13, whiteSpace: "nowrap" }}>{movies.length} films</div>
