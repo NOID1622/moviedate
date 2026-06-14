@@ -710,55 +710,73 @@ export default function MovieDate() {
 <div style={{ display: "flex", gap: 20, width: "100%", maxWidth: 480, padding: "0 20px", boxSizing: "border-box", zIndex: 10 }}>
           
           {/* Tombol Akun Saya (Noid) */}
-          <button 
+         <button 
             onClick={() => handleSelectRole("me")} 
             onMouseEnter={e => { 
               e.currentTarget.style.border = `1px solid ${COLOR_SECONDARY}`; 
               e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)"; 
+              // ── UBAH WARNA TEKS SAAT DISENTUH ──
+              e.currentTarget.querySelector("span").style.color = COLOR_SECONDARY; 
             }}
             onMouseLeave={e => { 
               e.currentTarget.style.border = "1px solid rgba(255, 255, 255, 0.15)"; 
               e.currentTarget.style.background = "rgba(255, 255, 255, 0.03)"; 
+              // ── KEMBALIKAN WARNA TEKS KE PUTIH ──
+              e.currentTarget.querySelector("span").style.color = "#fff"; 
             }}
             style={{ 
               flex: 1, padding: "24px", 
-              background: "rgba(244, 238, 236,0.03)", // ── Background hampir transparan ──rgba(255, 255, 255, 0.03)"
+              background: "rgba(244, 238, 236, 0.03)", 
               backdropFilter: "blur(10px)", 
-              border: "1px solid rgba(255, 255, 255, 0.15)", // ── Garis tepi tipis bawaan kaca ──
+              border: "1px solid rgba(255, 255, 255, 0.15)", 
               borderRadius: 16, color: "#fff", cursor: "pointer", 
               display: "flex", flexDirection: "column", alignItems: "center", gap: 12, 
               boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
-              transition: "all 0.2s ease-in-out" // ── Animasi halus ──
+              transition: "all 0.2s ease-in-out" 
             }}>
             {/* <Avatar profile={profiles.me} size={56} /> */}
-            <span style={{ fontFamily: "nama, sans-serif",fontWeight: 100, fontSize: 40 }}>Noid</span>
+            <span style={{ 
+              fontFamily: "nama, sans-serif", 
+              fontWeight: 100, 
+              fontSize: 40,
+              color: "#fff", // Warna default
+              transition: "color 0.2s ease-in-out" // ── Animasi halus untuk huruf ──
+            }}>Noid</span>
           </button>
-          
           {/* Tombol Akun Partner (Veren) */}
           <button 
             onClick={() => handleSelectRole("partner")} 
             onMouseEnter={e => { 
               e.currentTarget.style.border = `1px solid ${COLOR_LIGHT}`; 
               e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)"; 
+              // ── UBAH WARNA TEKS SAAT DISENTUH ──
+              e.currentTarget.querySelector("span").style.color = COLOR_LIGHT; 
             }}
             onMouseLeave={e => { 
               e.currentTarget.style.border = "1px solid rgba(255, 255, 255, 0.15)"; 
               e.currentTarget.style.background = "rgba(255, 255, 255, 0.03)"; 
+              // ── KEMBALIKAN WARNA TEKS KE PUTIH ──
+              e.currentTarget.querySelector("span").style.color = "#fff"; 
             }}
             style={{ 
               flex: 1, padding: "24px", 
-              background: "rgba(255, 255, 255, 0.03)", // ── Background hampir transparan ──
+              background: "rgba(244, 238, 236, 0.03)", 
               backdropFilter: "blur(10px)", 
-              border: "1px solid rgba(255, 255, 255, 0.15)", // ── Garis tepi tipis bawaan kaca ──
+              border: "1px solid rgba(255, 255, 255, 0.15)", 
               borderRadius: 16, color: "#fff", cursor: "pointer", 
               display: "flex", flexDirection: "column", alignItems: "center", gap: 12, 
               boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
-              transition: "all 0.2s ease-in-out" // ── Animasi halus ──
+              transition: "all 0.2s ease-in-out" 
             }}>
             {/* <Avatar profile={profiles.partner} size={56} /> */}
-            <span style={{ fontFamily: "nama, sans-serif",fontWeight: 100, fontSize: 40 }}>Veren</span>
+            <span style={{ 
+              fontFamily: "nama, sans-serif", 
+              fontWeight: 100, 
+              fontSize: 40,
+              color: "#fff", // Warna default
+              transition: "color 0.2s ease-in-out" // ── Animasi halus untuk huruf ──
+            }}>Veren</span>
           </button>
-
         </div>
       </div>
     );
