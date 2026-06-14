@@ -704,7 +704,7 @@ export default function MovieDate() {
         <div style={{ textAlign: "center", marginBottom: 40, zIndex: 10 }}>
           <img src="/logo.png" alt="Logo" style={{ width: 250, height: 250, borderRadius: 20, marginBottom: 16, display: "block", marginLeft: "auto", marginRight: "auto"}} />
           <h1 style={{ fontFamily: "judul, sans-serif", fontSize: 80,color:"#AACCD6", fontWeight: 900, margin: "0 0 8px", textShadow: "0 2px 10px rgba(0,0,0,0.8)" }}>MovieDate</h1>
-          <p style={{ color: "#E5E7EB", margin: 0, textShadow: "0 1px 5px rgba(0,0,0,0.8)" }}>Nonton apa ya hari ni...</p>
+          <p style={{ fontFamily: "tulisan, sans-serif",fontSize: 15,color: "#E5E7EB", margin: 0, textShadow: "0 1px 5px rgba(0,0,0,0.8)" }}>Nonton apa ya hari ni...</p>
         </div>
 
 <div style={{ display: "flex", gap: 20, width: "100%", maxWidth: 480, padding: "0 20px", boxSizing: "border-box", zIndex: 10 }}>
@@ -722,7 +722,7 @@ export default function MovieDate() {
             }}
             style={{ 
               flex: 1, padding: "24px", 
-              background: "rgba(244, 238, 236)", // ── Background hampir transparan ──rgba(255, 255, 255, 0.03)"
+              background: "rgba(244, 238, 236,0.03)", // ── Background hampir transparan ──rgba(255, 255, 255, 0.03)"
               backdropFilter: "blur(10px)", 
               border: "1px solid rgba(255, 255, 255, 0.15)", // ── Garis tepi tipis bawaan kaca ──
               borderRadius: 16, color: "#fff", cursor: "pointer", 
@@ -730,8 +730,8 @@ export default function MovieDate() {
               boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
               transition: "all 0.2s ease-in-out" // ── Animasi halus ──
             }}>
-            <Avatar profile={profiles.me} size={56} />
-            <span style={{ fontFamily: "nama, sans-serif",fontWeight: 100, fontSize: 16 }}>Noid</span>
+            {/* <Avatar profile={profiles.me} size={56} /> */}
+            <span style={{ fontFamily: "nama, sans-serif",fontWeight: 100, fontSize: 40 }}>Noid</span>
           </button>
           
           {/* Tombol Akun Partner (Veren) */}
@@ -755,8 +755,8 @@ export default function MovieDate() {
               boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
               transition: "all 0.2s ease-in-out" // ── Animasi halus ──
             }}>
-            <Avatar profile={profiles.partner} size={56} />
-            <span style={{ fontWeight: 700, fontSize: 16 }}>Veren</span>
+            {/* <Avatar profile={profiles.partner} size={56} /> */}
+            <span style={{ fontFamily: "nama, sans-serif",fontWeight: 100, fontSize: 40 }}>Veren</span>
           </button>
 
         </div>

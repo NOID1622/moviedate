@@ -12,6 +12,13 @@
   font-style: normal;
 }
 
+@font-face {
+  font-family: 'tulisan'; /* Anda bebas menamai font ini */
+  src: url('./fonts/typewcond_regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 
 /* PENTING: JANGAN tambahkan font-family ini ke tag body{} 
    agar font dasar aplikasi tetap normal (Inter/sans-serif) */
