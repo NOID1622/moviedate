@@ -18,6 +18,12 @@
   font-weight: normal;
   font-style: normal;
 }
+@font-face {
+  font-family: 'tes'; /* Anda bebas menamai font ini */
+  src: url('./fonts/Huglove.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
 
 @font-face {
   font-family: 'gantung'; /* Anda bebas menamai font ini */
@@ -26,6 +32,32 @@
   font-style: normal;
 }
 
+/* ── KELAS UNTUK MENYEMBUNYIKAN SCROLLBAR ── */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* Untuk Internet Explorer dan Edge */
+  scrollbar-width: none;  /* Untuk Firefox */
+}
 
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Untuk Chrome, Safari, dan Opera */
+}
+
+/* ── ANIMASI SLIDE IN UNTUK DETAIL PANEL ── */
+@keyframes slideInRight {
+  from { 
+    transform: translateX(100%); 
+    opacity: 0; 
+  }
+  to { 
+    transform: translateX(0); 
+    opacity: 1; 
+  }
+}
+
+/* ── ANIMASI SLIDE OUT (KELUAR) ── */
+@keyframes slideOutRight {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(100%); opacity: 0; }
+}
 /* PENTING: JANGAN tambahkan font-family ini ke tag body{} 
    agar font dasar aplikasi tetap normal (Inter/sans-serif) */
