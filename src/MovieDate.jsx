@@ -722,7 +722,7 @@ export default function MovieDate() {
             }}
             style={{ 
               flex: 1, padding: "24px", 
-              background: "rgba(255, 255, 255, 0.03)", // ── Background hampir transparan ──
+              background: "rgba(244, 238, 236)", // ── Background hampir transparan ──rgba(255, 255, 255, 0.03)"
               backdropFilter: "blur(10px)", 
               border: "1px solid rgba(255, 255, 255, 0.15)", // ── Garis tepi tipis bawaan kaca ──
               borderRadius: 16, color: "#fff", cursor: "pointer", 
