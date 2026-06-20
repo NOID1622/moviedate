@@ -13,13 +13,20 @@
 }
 
 @font-face {
+  font-family: 'eter'; /* Anda bebas menamai font ini */
+  src: url('./fonts/Eternalo.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
   font-family: 'tulisan'; /* Anda bebas menamai font ini */
   src: url('./fonts/typewcond_regular.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
 @font-face {
-  font-family: 'tes'; /* Anda bebas menamai font ini */
+  font-family: 'love'; /* Anda bebas menamai font ini */
   src: url('./fonts/Huglove.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
